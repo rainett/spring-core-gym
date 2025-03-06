@@ -4,6 +4,8 @@ import com.rainett.dao.TraineeDao;
 import com.rainett.model.Trainee;
 import com.rainett.storage.DataStorage;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -11,11 +13,13 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TraineeDaoImpl implements TraineeDao {
     private static final String NAMESPACE = "trainees";
+    private static final AtomicLong ID_GENERATOR = new AtomicLong();
     private final DataStorage dataStorage;
 
     @Override
     public void save(Trainee trainee) {
-        Long userId = trainee.getUserId();
+        Long userId = Optional.ofNullable(trainee.getUserId())
+                .orElseGet(ID_GENERATOR::getAndIncrement);
         dataStorage.getNamespace(NAMESPACE).put(userId, trainee);
     }
 
@@ -29,5 +33,10 @@ public class TraineeDaoImpl implements TraineeDao {
     public void deleteByUserId(Long userId) {
         Map<Long, Object> trainees = dataStorage.getNamespace(NAMESPACE);
         trainees.remove(userId);
+    }
+
+    @Override
+    public boolean usernameExists(String username) {
+        return dataStorage.usernameExists(username);
     }
 }

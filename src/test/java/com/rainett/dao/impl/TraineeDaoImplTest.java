@@ -1,8 +1,11 @@
 package com.rainett.dao.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import com.rainett.model.Trainee;
@@ -29,11 +32,11 @@ class TraineeDaoImplTest {
     @BeforeEach
     void setUp() {
         traineeStorage = new HashMap<>();
-        when(dataStorage.getNamespace("trainees")).thenReturn(traineeStorage);
     }
 
     @Test
     void testSaveTrainee() {
+        when(dataStorage.getNamespace("trainees")).thenReturn(traineeStorage);
         Trainee trainee = new Trainee();
         trainee.setUserId(1L);
         trainee.setUsername("John Doe");
@@ -43,6 +46,7 @@ class TraineeDaoImplTest {
 
     @Test
     void testFindByUserId() {
+        when(dataStorage.getNamespace("trainees")).thenReturn(traineeStorage);
         Trainee trainee = new Trainee();
         trainee.setUserId(2L);
         trainee.setUsername("Jane Doe");
@@ -55,6 +59,7 @@ class TraineeDaoImplTest {
 
     @Test
     void testDeleteByUserId() {
+        when(dataStorage.getNamespace("trainees")).thenReturn(traineeStorage);
         Trainee trainee = new Trainee();
         trainee.setUserId(3L);
         trainee.setUsername("Mike Smith");
@@ -62,5 +67,12 @@ class TraineeDaoImplTest {
 
         traineeDao.deleteByUserId(3L);
         assertNull(traineeStorage.get(3L));
+    }
+
+    @Test
+    void testUsernameExists() {
+        when(traineeDao.usernameExists("John Doe")).thenReturn(true);
+        assertTrue(traineeDao.usernameExists("John Doe"));
+        assertFalse(traineeDao.usernameExists("Jane Doe"));
     }
 }
