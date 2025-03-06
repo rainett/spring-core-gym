@@ -11,10 +11,12 @@ import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class TraineeDaoImplTest {
     @Mock
     private DataStorage dataStorage;
@@ -26,7 +28,6 @@ class TraineeDaoImplTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         traineeStorage = new HashMap<>();
         when(dataStorage.getNamespace("trainees")).thenReturn(traineeStorage);
     }
