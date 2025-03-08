@@ -18,4 +18,13 @@ class InMemoryStorageTest {
         Assertions.assertNotNull(inMemoryStorage.getNamespace("trainers"));
         Assertions.assertNotNull(inMemoryStorage.getNamespace("trainings"));
     }
+
+    @Test
+    void testUsernameIndex() {
+        inMemoryStorage.addUsername("username", 1L);
+        Assertions.assertTrue(inMemoryStorage.usernameExists("username"));
+        Assertions.assertFalse(inMemoryStorage.usernameExists("nonexistent"));
+        inMemoryStorage.removeUsername("username");
+        Assertions.assertFalse(inMemoryStorage.usernameExists("username"));
+    }
 }

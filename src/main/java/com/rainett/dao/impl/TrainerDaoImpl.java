@@ -17,6 +17,7 @@ public class TrainerDaoImpl implements TrainerDao {
     public void save(Trainer trainer) {
         Long userId = trainer.getUserId();
         dataStorage.getNamespace(NAMESPACE).put(userId, trainer);
+        dataStorage.addUsername(trainer.getUsername(), userId);
     }
 
     @Override

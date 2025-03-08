@@ -8,6 +8,4 @@ public interface TraineeDao {
     Trainee findByUserId(Long userId);
 
     void deleteByUserId(Long userId);
-
-    boolean usernameExists(String username);
 }

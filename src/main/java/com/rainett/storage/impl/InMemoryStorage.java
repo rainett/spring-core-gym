@@ -25,4 +25,14 @@ public class InMemoryStorage implements DataStorage {
     public boolean usernameExists(String username) {
         return usernameIndex.containsKey(username);
     }
+
+    @Override
+    public void addUsername(String username, Long userId) {
+        usernameIndex.put(username, userId);
+    }
+
+    @Override
+    public void removeUsername(String username) {
+        usernameIndex.remove(username);
+    }
 }

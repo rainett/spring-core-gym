@@ -21,6 +21,7 @@ public class TraineeDaoImpl implements TraineeDao {
         Long userId = Optional.ofNullable(trainee.getUserId())
                 .orElseGet(ID_GENERATOR::getAndIncrement);
         dataStorage.getNamespace(NAMESPACE).put(userId, trainee);
+        dataStorage.addUsername(trainee.getUsername(), userId);
     }
 
     @Override
@@ -32,11 +33,7 @@ public class TraineeDaoImpl implements TraineeDao {
     @Override
     public void deleteByUserId(Long userId) {
         Map<Long, Object> trainees = dataStorage.getNamespace(NAMESPACE);
-        trainees.remove(userId);
-    }
-
-    @Override
-    public boolean usernameExists(String username) {
-        return dataStorage.usernameExists(username);
+        Trainee trainee = (Trainee) trainees.remove(userId);
+        dataStorage.removeUsername(trainee.getUsername());
     }
 }

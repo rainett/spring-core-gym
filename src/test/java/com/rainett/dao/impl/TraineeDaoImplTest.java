@@ -1,11 +1,8 @@
 package com.rainett.dao.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import com.rainett.model.Trainee;
@@ -67,12 +64,5 @@ class TraineeDaoImplTest {
 
         traineeDao.deleteByUserId(3L);
         assertNull(traineeStorage.get(3L));
-    }
-
-    @Test
-    void testUsernameExists() {
-        when(traineeDao.usernameExists("John Doe")).thenReturn(true);
-        assertTrue(traineeDao.usernameExists("John Doe"));
-        assertFalse(traineeDao.usernameExists("Jane Doe"));
     }
 }
