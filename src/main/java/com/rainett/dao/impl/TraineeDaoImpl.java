@@ -6,15 +6,16 @@ import com.rainett.storage.DataStorage;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 public class TraineeDaoImpl implements TraineeDao {
     private static final String NAMESPACE = "trainees";
     private static final AtomicLong ID_GENERATOR = new AtomicLong();
-    private final DataStorage dataStorage;
+
+    @Autowired
+    private DataStorage dataStorage;
 
     @Override
     public void save(Trainee trainee) {

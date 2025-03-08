@@ -5,15 +5,16 @@ import com.rainett.storage.DataStorage;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private static final String USERNAME_FORMATTER = "%s.%s";
     private static final int PASSWORD_LENGTH = 10;
-    private final DataStorage dataStorage;
+
+    @Autowired
+    private DataStorage dataStorage;
 
     @Override
     public String generateUniqueUsername(String firstName, String lastName) {

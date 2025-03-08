@@ -5,13 +5,16 @@ import com.rainett.model.Trainer;
 import com.rainett.service.TrainerService;
 import com.rainett.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 public class TrainerServiceImpl implements TrainerService {
-    private final TrainerDao trainerDao;
-    private final UserService userService;
+    @Autowired
+    private TrainerDao trainerDao;
+
+    @Autowired
+    private UserService userService;
 
     @Override
     public void createProfile(Trainer trainer) {
