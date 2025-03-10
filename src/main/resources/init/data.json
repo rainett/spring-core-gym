@@ -1,0 +1,68 @@
+{
+  "trainees": [
+    {
+      "userId": 1,
+      "firstName": "John",
+      "lastName": "Doe",
+      "username": "john_doe",
+      "password": "password123",
+      "isActive": true,
+      "dateOfBirth": "1995-05-15",
+      "address": "123 Main Street, New York, NY"
+    },
+    {
+      "userId": 2,
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "username": "jane_smith",
+      "password": "securePass",
+      "isActive": true,
+      "dateOfBirth": "1992-08-22",
+      "address": "456 Maple Avenue, Boston, MA"
+    }
+  ],
+  "trainers": [
+    {
+      "userId": 1,
+      "firstName": "Mike",
+      "lastName": "Johnson",
+      "username": "mike_johnson",
+      "password": "trainerPass",
+      "isActive": true,
+      "specialization": "Strength Training"
+    },
+    {
+      "userId": 2,
+      "firstName": "Emily",
+      "lastName": "Davis",
+      "username": "emily_davis",
+      "password": "trainer123",
+      "isActive": false,
+      "specialization": "Yoga"
+    }
+  ],
+  "trainings": [
+    {
+      "id": 1,
+      "traineeId": 1,
+      "trainerId": 1,
+      "name": "Morning Strength Session",
+      "trainingType": {
+        "name": "Strength Training"
+      },
+      "date": "2025-03-10",
+      "duration": 60
+    },
+    {
+      "id": 2,
+      "traineeId": 2,
+      "trainerId": 2,
+      "name": "Evening Yoga Class",
+      "trainingType": {
+        "name": "Yoga"
+      },
+      "date": "2025-03-11",
+      "duration": 45
+    }
+  ]
+}

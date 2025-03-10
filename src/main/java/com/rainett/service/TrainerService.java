@@ -3,7 +3,7 @@ package com.rainett.service;
 import com.rainett.model.Trainer;
 
 public interface TrainerService {
-    void createProfile(Trainer trainer);
+    Long createProfile(Trainer trainer);
 
     void updateProfile(Trainer trainer);
 

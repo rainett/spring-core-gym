@@ -3,7 +3,7 @@ package com.rainett.dao;
 import com.rainett.model.Trainee;
 
 public interface TraineeDao {
-    void save(Trainee trainee);
+    Long save(Trainee trainee);
 
     Trainee findByUserId(Long userId);
 

@@ -18,11 +18,12 @@ public class TraineeDaoImpl implements TraineeDao {
     private DataStorage dataStorage;
 
     @Override
-    public void save(Trainee trainee) {
+    public Long save(Trainee trainee) {
         Long userId = Optional.ofNullable(trainee.getUserId())
                 .orElseGet(ID_GENERATOR::getAndIncrement);
         dataStorage.getNamespace(NAMESPACE).put(userId, trainee);
         dataStorage.addUsername(trainee.getUsername(), userId);
+        return userId;
     }
 
     @Override

@@ -14,12 +14,12 @@ public class TraineeServiceImpl implements TraineeService {
     private final UserService userService;
 
     @Override
-    public void createProfile(Trainee trainee) {
+    public Long createProfile(Trainee trainee) {
         String username = userService
                 .generateUniqueUsername(trainee.getFirstName(), trainee.getLastName());
         trainee.setUsername(username);
         trainee.setPassword(userService.generateRandomPassword());
-        traineeDao.save(trainee);
+        return traineeDao.save(trainee);
     }
 
     @Override

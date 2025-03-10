@@ -17,12 +17,12 @@ public class TrainerServiceImpl implements TrainerService {
     private UserService userService;
 
     @Override
-    public void createProfile(Trainer trainer) {
+    public Long createProfile(Trainer trainer) {
         String username = userService
                 .generateUniqueUsername(trainer.getFirstName(), trainer.getLastName());
         trainer.setUsername(username);
         trainer.setPassword(userService.generateRandomPassword());
-        trainerDao.save(trainer);
+        return trainerDao.save(trainer);
     }
 
     @Override

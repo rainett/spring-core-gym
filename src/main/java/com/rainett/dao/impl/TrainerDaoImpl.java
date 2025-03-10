@@ -18,11 +18,12 @@ public class TrainerDaoImpl implements TrainerDao {
     private DataStorage dataStorage;
 
     @Override
-    public void save(Trainer trainer) {
+    public Long save(Trainer trainer) {
         Long userId = Optional.ofNullable(trainer.getUserId())
                 .orElseGet(ID_GENERATOR::getAndIncrement);
         dataStorage.getNamespace(NAMESPACE).put(userId, trainer);
         dataStorage.addUsername(trainer.getUsername(), userId);
+        return userId;
     }
 
     @Override
