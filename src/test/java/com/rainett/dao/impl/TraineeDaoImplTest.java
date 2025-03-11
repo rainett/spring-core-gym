@@ -1,15 +1,14 @@
 package com.rainett.dao.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.rainett.model.Trainee;
 import com.rainett.storage.DataStorage;
-import java.util.HashMap;
-import java.util.Map;
-import org.junit.jupiter.api.BeforeEach;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,51 +17,58 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class TraineeDaoImplTest {
+
     @Mock
-    private DataStorage dataStorage;
+    private DataStorage<Trainee> dataStorage;
 
     @InjectMocks
     private TraineeDaoImpl traineeDao;
 
-    private Map<Long, Object> traineeStorage;
-
-    @BeforeEach
-    void setUp() {
-        traineeStorage = new HashMap<>();
-    }
-
     @Test
     void testSaveTrainee() {
-        when(dataStorage.getNamespace("trainees")).thenReturn(traineeStorage);
         Trainee trainee = new Trainee();
-        trainee.setUserId(1L);
-        trainee.setUsername("John Doe");
-        traineeDao.save(trainee);
-        assertEquals(trainee, traineeStorage.get(1L));
+        when(dataStorage.save(trainee)).thenReturn(trainee);
+
+        Trainee saved = traineeDao.save(trainee);
+
+        verify(dataStorage, times(1)).save(trainee);
+        assertEquals(trainee, saved, "Saved trainee should match the one provided");
     }
 
     @Test
     void testFindByUserId() {
-        when(dataStorage.getNamespace("trainees")).thenReturn(traineeStorage);
+        Long userId = 1L;
         Trainee trainee = new Trainee();
-        trainee.setUserId(2L);
-        trainee.setUsername("Jane Doe");
-        traineeStorage.put(2L, trainee);
+        when(dataStorage.findById(Trainee.class, userId)).thenReturn(trainee);
 
-        Trainee foundTrainee = traineeDao.findByUserId(2L);
-        assertNotNull(foundTrainee);
-        assertEquals("Jane Doe", foundTrainee.getUsername());
+        Trainee found = traineeDao.findByUserId(userId);
+
+        verify(dataStorage, times(1)).findById(Trainee.class, userId);
+        assertEquals(trainee, found, "Found trainee should match expected");
     }
 
     @Test
     void testDeleteByUserId() {
-        when(dataStorage.getNamespace("trainees")).thenReturn(traineeStorage);
+        Long userId = 1L;
         Trainee trainee = new Trainee();
-        trainee.setUserId(3L);
-        trainee.setUsername("Mike Smith");
-        traineeStorage.put(3L, trainee);
+        when(dataStorage.findById(Trainee.class, userId)).thenReturn(trainee);
+        when(dataStorage.delete(trainee)).thenReturn(trainee);
 
-        traineeDao.deleteByUserId(3L);
-        assertNull(traineeStorage.get(3L));
+        Trainee deleted = traineeDao.deleteByUserId(userId);
+
+        verify(dataStorage, times(1)).findById(Trainee.class, userId);
+        verify(dataStorage, times(1)).delete(trainee);
+        assertEquals(trainee, deleted, "Deleted trainee should match expected");
+    }
+
+    @Test
+    void testFindAll() {
+        List<Trainee> trainees = Arrays.asList(new Trainee(), new Trainee());
+        when(dataStorage.findAll(Trainee.class)).thenReturn(trainees);
+
+        List<Trainee> result = traineeDao.findAll();
+
+        verify(dataStorage, times(1)).findAll(Trainee.class);
+        assertEquals(trainees, result, "findAll should return all trainees");
     }
 }

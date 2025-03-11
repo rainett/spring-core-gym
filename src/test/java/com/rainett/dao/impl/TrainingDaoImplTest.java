@@ -1,13 +1,14 @@
 package com.rainett.dao.impl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.rainett.model.Training;
 import com.rainett.storage.DataStorage;
-import java.util.HashMap;
-import java.util.Map;
-import org.junit.jupiter.api.BeforeEach;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,37 +18,42 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class TrainingDaoImplTest {
     @Mock
-    private DataStorage dataStorage;
+    private DataStorage<Training> dataStorage;
 
     @InjectMocks
     private TrainingDaoImpl trainingDao;
 
-    private Map<Long, Object> trainingMap;
+    @Test
+    void testSaveTraining() {
+        Training training = new Training();
+        when(dataStorage.save(training)).thenReturn(training);
 
-    @BeforeEach
-    void setUp() {
-        trainingMap = new HashMap<>();
-        when(dataStorage.getNamespace("trainings")).thenReturn(trainingMap);
+        Training saved = trainingDao.save(training);
+
+        verify(dataStorage, times(1)).save(training);
+        assertEquals(training, saved, "Saved training should match the one provided");
     }
 
     @Test
-    void savesTraining() {
+    void testFindById() {
+        Long id = 3L;
         Training training = new Training();
-        training.setId(1L);
-        training.setName("High intensity interval training");
+        when(dataStorage.findById(Training.class, id)).thenReturn(training);
 
-        trainingDao.save(training);
-        assertEquals(training, trainingMap.get(1L));
+        Training found = trainingDao.findById(id);
+
+        verify(dataStorage, times(1)).findById(Training.class, id);
+        assertEquals(training, found, "Found training should match expected");
     }
 
     @Test
-    void findsTrainingById() {
-        Training training = new Training();
-        training.setId(2L);
-        training.setName("Low intensity training");
-        trainingMap.put(2L, training);
+    void testFindAll() {
+        List<Training> trainings = Arrays.asList(new Training(), new Training());
+        when(dataStorage.findAll(Training.class)).thenReturn(trainings);
 
-        Training foundTraining = trainingDao.findById(2L);
-        assertEquals(training, foundTraining);
+        List<Training> result = trainingDao.findAll();
+
+        verify(dataStorage, times(1)).findAll(Training.class);
+        assertEquals(trainings, result, "findAll should return all trainings");
     }
 }

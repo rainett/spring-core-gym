@@ -2,8 +2,6 @@ package com.rainett.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -11,6 +9,8 @@ import static org.mockito.Mockito.when;
 import com.rainett.dao.TraineeDao;
 import com.rainett.model.Trainee;
 import com.rainett.service.UserService;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,50 +29,82 @@ class TraineeServiceImplTest {
     private TraineeServiceImpl traineeService;
 
     @Test
-    void createsProfile() {
+    void testCreateProfile() {
         Trainee trainee = new Trainee();
         trainee.setFirstName("John");
         trainee.setLastName("Doe");
-        traineeService.createProfile(trainee);
-        verify(userService, times(1)).generateUniqueUsername(anyString(), anyString());
+        when(userService.generateUniqueUsername("John", "Doe")).thenReturn("john.doe");
+        when(userService.generateRandomPassword()).thenReturn("abcdefghij");
+        when(traineeDao.save(trainee)).thenReturn(trainee);
+
+        Trainee result = traineeService.createProfile(trainee);
+
+        assertEquals("john.doe", trainee.getUsername(), "Username should be set to 'john.doe'");
+        assertEquals("abcdefghij", trainee.getPassword(), "Password should be set to 'abcdefghij'");
+        verify(userService, times(1)).generateUniqueUsername("John", "Doe");
         verify(userService, times(1)).generateRandomPassword();
         verify(traineeDao, times(1)).save(trainee);
+        assertEquals(trainee, result, "The created profile should match the saved trainee");
     }
 
     @Test
-    void testFindByUserId() {
+    void testUpdateProfile_Success() {
+        Trainee trainee = new Trainee();
+        trainee.setUserId(1L);
+        when(traineeDao.findByUserId(1L)).thenReturn(trainee);
+        when(traineeDao.save(trainee)).thenReturn(trainee);
+
+        Trainee result = traineeService.updateProfile(trainee);
+
+        verify(traineeDao, times(1)).findByUserId(1L);
+        verify(traineeDao, times(1)).save(trainee);
+        assertEquals(trainee, result, "Updated profile should match the saved trainee");
+    }
+
+    @Test
+    void testUpdateProfile_NotFound() {
         Trainee trainee = new Trainee();
         trainee.setUserId(2L);
-        when(traineeDao.findByUserId(2L)).thenReturn(trainee);
+        when(traineeDao.findByUserId(2L)).thenReturn(null);
 
-        Trainee profile = traineeService.getProfile(2L);
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            traineeService.updateProfile(trainee);
+        });
+        assertEquals("Trainee not found", exception.getMessage(), "Expected error message for non-existent trainee");
         verify(traineeDao, times(1)).findByUserId(2L);
-        assertEquals(trainee, profile);
+        verify(traineeDao, times(0)).save(trainee);
     }
 
     @Test
-    void testDeleteByUserId() {
-        Trainee trainee = new Trainee();
-        trainee.setUserId(3L);
-        doNothing().when(traineeDao).deleteByUserId(3L);
-        traineeService.deleteProfile(3L);
-        verify(traineeDao, times(1)).deleteByUserId(3L);
+    void testDeleteProfile() {
+        Long userId = 1L;
+        when(traineeDao.deleteByUserId(userId)).thenReturn(new Trainee());
+
+        traineeService.deleteProfile(userId);
+
+        verify(traineeDao, times(1)).deleteByUserId(userId);
     }
 
     @Test
-    void updateProfile() {
+    void testGetProfile() {
+        Long userId = 1L;
         Trainee trainee = new Trainee();
-        trainee.setUserId(3L);
-        when(traineeDao.findByUserId(3L)).thenReturn(trainee);
-        traineeService.updateProfile(trainee);
-        verify(traineeDao, times(1)).save(trainee);
+        when(traineeDao.findByUserId(userId)).thenReturn(trainee);
+
+        Trainee result = traineeService.getProfile(userId);
+
+        verify(traineeDao, times(1)).findByUserId(userId);
+        assertEquals(trainee, result, "getProfile should return the expected trainee");
     }
 
     @Test
-    void testUpdateProfile_notFound() {
-        Trainee trainee = new Trainee();
-        trainee.setUserId(3L);
-        when(traineeDao.findByUserId(3L)).thenReturn(null);
-        assertThrows(IllegalArgumentException.class, () -> traineeService.updateProfile(trainee));
+    void testGetAll() {
+        List<Trainee> trainees = Arrays.asList(new Trainee(), new Trainee());
+        when(traineeDao.findAll()).thenReturn(trainees);
+
+        List<Trainee> result = traineeService.getAll();
+
+        verify(traineeDao, times(1)).findAll();
+        assertEquals(trainees, result, "getAll should return all trainees");
     }
 }
