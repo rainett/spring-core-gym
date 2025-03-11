@@ -12,14 +12,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class InMemoryStorage<T> implements DataStorage<T> {
     private final Map<Class<?>, Table<T>> tables = new HashMap<>();
 
     @Override
     public T save(T entity) {
+        log.info("Saving entity: {}", entity);
         if (!tables.containsKey(entity.getClass())) {
             tables.put(entity.getClass(), new Table<>());
         }
@@ -29,6 +32,7 @@ public class InMemoryStorage<T> implements DataStorage<T> {
 
     @Override
     public T findById(Class<T> entityClass, Long id) {
+        log.info("Finding entity by id: {}", id);
         if (!tables.containsKey(entityClass)) {
             throw new EntityNotFoundException(
                     "No entity found for class: " + entityClass.getSimpleName());
@@ -43,6 +47,7 @@ public class InMemoryStorage<T> implements DataStorage<T> {
 
     @Override
     public T delete(T entity) {
+        log.info("Deleting entity: {}", entity);
         if (!tables.containsKey(entity.getClass())) {
             throw new EntityNotFoundException(
                     "No entity found for class: " + entity.getClass().getSimpleName());
@@ -53,6 +58,7 @@ public class InMemoryStorage<T> implements DataStorage<T> {
 
     @Override
     public List<T> findAll(Class<? extends T> entityClass) {
+        log.info("Finding all entities for class: {}", entityClass);
         return tables.get(entityClass).getAll();
     }
 
