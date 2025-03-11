@@ -1,13 +1,16 @@
 package com.rainett.service;
 
 import com.rainett.model.Trainee;
+import java.util.List;
 
 public interface TraineeService {
-    Long createProfile(Trainee trainee);
+    Trainee createProfile(Trainee trainee);
 
-    void updateProfile(Trainee trainee);
+    Trainee updateProfile(Trainee trainee);
 
     void deleteProfile(Long userId);
 
     Trainee getProfile(Long userId);
+
+    List<Trainee> getAll();
 }

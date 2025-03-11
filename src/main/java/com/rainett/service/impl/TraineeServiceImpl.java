@@ -4,17 +4,20 @@ import com.rainett.dao.TraineeDao;
 import com.rainett.model.Trainee;
 import com.rainett.service.TraineeService;
 import com.rainett.service.UserService;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 public class TraineeServiceImpl implements TraineeService {
-    private final TraineeDao traineeDao;
-    private final UserService userService;
+    @Autowired
+    private TraineeDao traineeDao;
+
+    @Autowired
+    private UserService userService;
 
     @Override
-    public Long createProfile(Trainee trainee) {
+    public Trainee createProfile(Trainee trainee) {
         String username = userService
                 .generateUniqueUsername(trainee.getFirstName(), trainee.getLastName());
         trainee.setUsername(username);
@@ -23,11 +26,11 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public void updateProfile(Trainee trainee) {
+    public Trainee updateProfile(Trainee trainee) {
         if (traineeDao.findByUserId(trainee.getUserId()) == null) {
             throw new IllegalArgumentException("Trainee not found");
         }
-        traineeDao.save(trainee);
+        return traineeDao.save(trainee);
     }
 
     @Override
@@ -38,5 +41,10 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     public Trainee getProfile(Long userId) {
         return traineeDao.findByUserId(userId);
+    }
+
+    @Override
+    public List<Trainee> getAll() {
+        return traineeDao.findAll();
     }
 }

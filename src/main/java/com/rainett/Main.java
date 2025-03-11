@@ -2,8 +2,12 @@ package com.rainett;
 
 import com.rainett.facade.TrainingFacade;
 import com.rainett.model.Trainee;
+import com.rainett.model.Trainer;
+import com.rainett.model.Training;
 import com.rainett.service.TraineeService;
-import com.rainett.storage.DataStorage;
+import com.rainett.service.TrainerService;
+import com.rainett.service.TrainingService;
+import java.util.List;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -12,23 +16,31 @@ public class Main {
 
     public static void main(String[] args) {
         ApplicationContext context = new AnnotationConfigApplicationContext(BASE_PACKAGE);
-        TrainingFacade facade = context.getBean(TrainingFacade.class);
-        TraineeService traineeService = facade.getTraineeService();
+        TrainingFacade trainingFacade = context.getBean(TrainingFacade.class);
+
+        TraineeService traineeService = trainingFacade.getTraineeService();
+        List<Trainee> trainees = traineeService.getAll();
+        System.out.println("Trainees: " + trainees);
+
         Trainee trainee = new Trainee();
         trainee.setFirstName("John");
         trainee.setLastName("Doe");
-        Long userId = traineeService.createProfile(trainee);
-        trainee.setUserId(userId);
-        System.out.println("Created trainee: " + traineeService.getProfile(userId));
-        trainee.setFirstName("Jane");
-        traineeService.updateProfile(trainee);
-        System.out.println("Updated trainee: " + traineeService.getProfile(userId));
-        traineeService.deleteProfile(userId);
-        System.out.println("Deleted trainee: " + traineeService.getProfile(userId));
+        traineeService.createProfile(trainee);
 
-        DataStorage dataStorage = context.getBean(DataStorage.class);
-        System.out.println("Trainees: " + dataStorage.getNamespace("trainees"));
-        System.out.println("Trainers: " + dataStorage.getNamespace("trainers"));
-        System.out.println("Trainings: " + dataStorage.getNamespace("trainings"));
+        Trainee trainee2 = new Trainee();
+        trainee2.setFirstName("John");
+        trainee2.setLastName("Doe");
+        traineeService.createProfile(trainee2);
+
+        trainees = traineeService.getAll();
+        System.out.println("Trainees: " + trainees);
+
+        TrainerService trainerService = trainingFacade.getTrainerService();
+        List<Trainer> trainers = trainerService.getAll();
+        System.out.println("Trainers: " + trainers);
+
+        TrainingService trainingService = trainingFacade.getTrainingService();
+        List<Training> trainings = trainingService.getAll();
+        System.out.println("Trainings: " + trainings);
     }
 }

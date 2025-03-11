@@ -4,7 +4,7 @@ import com.rainett.dao.TrainerDao;
 import com.rainett.model.Trainer;
 import com.rainett.service.TrainerService;
 import com.rainett.service.UserService;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +17,7 @@ public class TrainerServiceImpl implements TrainerService {
     private UserService userService;
 
     @Override
-    public Long createProfile(Trainer trainer) {
+    public Trainer createProfile(Trainer trainer) {
         String username = userService
                 .generateUniqueUsername(trainer.getFirstName(), trainer.getLastName());
         trainer.setUsername(username);
@@ -26,15 +26,20 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public void updateProfile(Trainer trainer) {
+    public Trainer updateProfile(Trainer trainer) {
         if (trainerDao.findByUserId(trainer.getUserId()) == null) {
             throw new IllegalArgumentException("Trainee not found");
         }
-        trainerDao.save(trainer);
+        return trainerDao.save(trainer);
     }
 
     @Override
     public Trainer getProfile(Long userId) {
         return trainerDao.findByUserId(userId);
+    }
+
+    @Override
+    public List<Trainer> getAll() {
+        return trainerDao.findAll();
     }
 }

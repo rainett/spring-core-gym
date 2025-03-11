@@ -1,9 +1,12 @@
 package com.rainett.dao;
 
 import com.rainett.model.Trainer;
+import java.util.List;
 
 public interface TrainerDao {
-    Long save(Trainer trainer);
+    Trainer save(Trainer trainer);
 
     Trainer findByUserId(Long userId);
+
+    List<Trainer> findAll();
 }
