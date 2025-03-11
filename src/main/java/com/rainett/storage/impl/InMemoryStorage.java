@@ -22,7 +22,7 @@ public class InMemoryStorage<T> implements DataStorage<T> {
 
     @Override
     public T save(T entity) {
-        log.info("Saving entity: {}", entity);
+        log.debug("Saving entity: {}", entity);
         if (!tables.containsKey(entity.getClass())) {
             tables.put(entity.getClass(), new Table<>());
         }
@@ -32,7 +32,7 @@ public class InMemoryStorage<T> implements DataStorage<T> {
 
     @Override
     public T findById(Class<T> entityClass, Long id) {
-        log.info("Finding entity by id: {}", id);
+        log.debug("Finding entity by id: {}", id);
         if (!tables.containsKey(entityClass)) {
             throw new EntityNotFoundException(
                     "No entity found for class: " + entityClass.getSimpleName());
@@ -47,7 +47,7 @@ public class InMemoryStorage<T> implements DataStorage<T> {
 
     @Override
     public T delete(T entity) {
-        log.info("Deleting entity: {}", entity);
+        log.debug("Deleting entity: {}", entity);
         if (!tables.containsKey(entity.getClass())) {
             throw new EntityNotFoundException(
                     "No entity found for class: " + entity.getClass().getSimpleName());
@@ -58,7 +58,7 @@ public class InMemoryStorage<T> implements DataStorage<T> {
 
     @Override
     public List<T> findAll(Class<? extends T> entityClass) {
-        log.info("Finding all entities for class: {}", entityClass);
+        log.debug("Finding all entities for class: {}", entityClass);
         return tables.get(entityClass).getAll();
     }
 
