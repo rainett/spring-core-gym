@@ -4,7 +4,11 @@
              xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence
              https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd">
     <persistence-unit name="default" transaction-type="RESOURCE_LOCAL">
-
+        <class>com.rainett.model.User</class>
+        <class>com.rainett.model.Trainee</class>
+        <class>com.rainett.model.Trainer</class>
+        <class>com.rainett.model.TrainingType</class>
+        <class>com.rainett.model.Training</class>
         <properties>
             <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
             <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/rainett"/>
