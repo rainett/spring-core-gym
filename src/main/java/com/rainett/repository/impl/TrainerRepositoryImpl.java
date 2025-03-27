@@ -35,7 +35,7 @@ public class TrainerRepositoryImpl extends AbstractHibernateRepository<Trainer>
     public List<Trainer> findWithoutTraineeByUsername(String username) {
         return getCurrentSession()
                 .createQuery("select distinct t from Trainer t " +
-                             "left join fetch t.trainees tr " +
+                             "left join t.trainees tr " +
                              "with tr.username = :username " +
                              "where tr is null", Trainer.class)
                 .setParameter("username", username)

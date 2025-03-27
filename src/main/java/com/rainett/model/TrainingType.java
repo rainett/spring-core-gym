@@ -9,9 +9,11 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.Immutable;
 
 @Getter
+@ToString
 @NoArgsConstructor
 @Entity
 @Table(

@@ -5,6 +5,7 @@ import com.rainett.dto.user.UpdateUserActiveRequest;
 import com.rainett.dto.user.UsernameRequest;
 import com.rainett.dto.trainer.CreateTrainerProfileRequest;
 import com.rainett.dto.trainer.UpdateTrainerRequest;
+import com.rainett.model.Trainee;
 import com.rainett.model.Trainer;
 import java.util.List;
 
@@ -20,4 +21,6 @@ public interface TrainerService {
     Trainer setActiveStatus(UpdateUserActiveRequest request);
 
     List<Trainer> getTrainersWithoutTraineeByUsername(UsernameRequest request);
+
+    List<Trainee> getTraineesByTrainerUsername(String trainerUsername);
 }

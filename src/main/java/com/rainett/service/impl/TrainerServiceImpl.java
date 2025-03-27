@@ -8,6 +8,7 @@ import com.rainett.dto.user.UpdateUserActiveRequest;
 import com.rainett.dto.user.UsernameRequest;
 import com.rainett.exceptions.EntityNotFoundException;
 import com.rainett.mapper.TrainerMapper;
+import com.rainett.model.Trainee;
 import com.rainett.model.Trainer;
 import com.rainett.model.TrainingType;
 import com.rainett.repository.TrainerRepository;
@@ -35,7 +36,7 @@ public class TrainerServiceImpl implements TrainerService {
     @Transactional
     public Trainer createProfile(@Valid CreateTrainerProfileRequest request) {
         Trainer trainer = trainerMapper.toEntity(request);
-        TrainingType trainingType = getTrainingType(request);
+        TrainingType trainingType = getTrainingType(request.getSpecialization());
         trainer.setSpecialization(trainingType);
         String username = userService
                 .generateUsername(request.getFirstName(), request.getLastName());
@@ -92,16 +93,22 @@ public class TrainerServiceImpl implements TrainerService {
         return trainerRepository.findWithoutTraineeByUsername(request.getUsername());
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<Trainee> getTraineesByTrainerUsername(String trainerUsername) {
+        return getTrainer(trainerUsername).getTrainees().stream().toList();
+    }
+
     private Trainer getTrainer(String username) {
         return trainerRepository.findByUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Trainer not found for username = [" + username + "]"));
     }
 
-    private TrainingType getTrainingType(CreateTrainerProfileRequest request) {
-        return trainingTypeRepository.findByName(request.getSpecialization())
+    private TrainingType getTrainingType(String name) {
+        return trainingTypeRepository.findByName(name)
                 .orElseThrow(() -> new EntityNotFoundException(
-                        "Training type not found for name = [" + request.getSpecialization() + "]"
+                        "Training type not found for name = [" + name + "]"
                 ));
     }
 }

@@ -1,7 +1,6 @@
 package com.rainett.dto.training;
 
 import com.rainett.dto.AuthenticatedRequest;
-import com.rainett.model.TrainingType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
@@ -20,8 +19,8 @@ public class CreateTrainingRequest extends AuthenticatedRequest {
     @NotBlank
     private String name;
 
-    @NotNull
-    private TrainingType trainingType;
+    @NotBlank
+    private String trainingType;
 
     @NotNull
     private LocalDate date;
