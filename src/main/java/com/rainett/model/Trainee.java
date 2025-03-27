@@ -6,7 +6,10 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,10 +26,31 @@ public class Trainee extends User {
     private String address;
 
     @ToString.Exclude
-    @ManyToMany(mappedBy = "trainees")
-    private List<Trainer> trainers;
+    @ManyToMany(mappedBy = "trainees", cascade = CascadeType.MERGE)
+    @Setter(AccessLevel.PRIVATE)
+    private Set<Trainer> trainers;
 
     @ToString.Exclude
     @OneToMany(mappedBy = "trainee", cascade = CascadeType.ALL)
-    private List<Training> trainings;
+    @Setter(AccessLevel.PRIVATE)
+    private Set<Training> trainings;
+
+    public void updateTrainers(List<Trainer> trainers) {
+        Set<Trainer> newTrainersSet = new HashSet<>(trainers);
+        Set<Trainer> currentTrainers = new HashSet<>(this.trainers);
+
+        for (Trainer trainer : currentTrainers) {
+            if (!newTrainersSet.contains(trainer)) {
+                trainer.getTrainees().remove(this);
+                this.trainers.remove(trainer);
+            }
+        }
+
+        for (Trainer trainer : newTrainersSet) {
+            if (!currentTrainers.contains(trainer)) {
+                trainer.getTrainees().add(this);
+                this.trainers.add(trainer);
+            }
+        }
+    }
 }

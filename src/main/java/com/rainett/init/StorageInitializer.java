@@ -1,58 +1,39 @@
 package com.rainett.init;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
-import com.rainett.exceptions.DataLoadException;
-import com.rainett.model.Trainee;
-import com.rainett.model.Trainer;
-import com.rainett.model.Training;
-import com.rainett.storage.DataStorage;
-import com.rainett.storage.impl.InMemoryStorage;
-import java.io.File;
+import com.rainett.exceptions.DataProcessingException;
 import java.io.IOException;
-import java.util.List;
-import lombok.Data;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.stereotype.Component;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.stream.Collectors;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 
-@Component
-public class StorageInitializer implements BeanPostProcessor {
-    @Value("${data.file}")
-    private String dataFile;
+public class StorageInitializer {
+    private final String dataFile;
+    private final SessionFactory sessionFactory;
 
-    @Override
-    public Object postProcessAfterInitialization(Object bean, String beanName)
-            throws BeansException {
-        if (bean instanceof InMemoryStorage) {
-            loadDataFromFile(dataFile, (DataStorage) bean);
-        }
-        return bean;
+    public StorageInitializer(String dataFile, SessionFactory sessionFactory) {
+        this.dataFile = dataFile;
+        this.sessionFactory = sessionFactory;
     }
 
-    private void loadDataFromFile(String dataFile, DataStorage<?> dataStorage) {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper()
-                    .registerModule(new ParameterNamesModule())
-                    .registerModule(new Jdk8Module())
-                    .registerModule(new JavaTimeModule());
-            DataWrapper dataWrapper = objectMapper.readValue(new File(dataFile), DataWrapper.class);
-            dataWrapper.trainees.forEach(((DataStorage<Trainee>) dataStorage)::save);
-            dataWrapper.trainers.forEach(((DataStorage<Trainer>) dataStorage)::save);
-            dataWrapper.trainings.forEach(((DataStorage<Training>) dataStorage)::save);
+    public void initializeData() {
+        try (Session session = sessionFactory.openSession()) {
+            Transaction tx = session.beginTransaction();
+            String sql = getQuery(dataFile);
+            session.createNativeMutationQuery(sql).executeUpdate();
+            tx.commit();
+        } catch (Exception e) {
+            throw new DataProcessingException("Failed to initialize data", e);
+        }
+    }
+
+    private String getQuery(String dataFile) {
+        try (var stream = Files.lines(Paths.get(dataFile))) {
+            return stream.collect(Collectors.joining(" "));
         } catch (IOException e) {
-            throw new DataLoadException("Failed to load data from file: " + dataFile, e);
+            throw new DataProcessingException("Failed to load data from file", e);
         }
     }
-
-    @Data
-    private static class DataWrapper {
-        private List<Trainee> trainees;
-        private List<Trainer> trainers;
-        private List<Training> trainings;
-    }
-
 }

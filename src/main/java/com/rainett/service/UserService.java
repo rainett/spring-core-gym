@@ -1,7 +1,12 @@
 package com.rainett.service;
 
-public interface UserService {
-    String generateUniqueUsername(String firstName, String lastName);
+import com.rainett.dto.user.UpdateUserRequest;
+import com.rainett.model.User;
 
-    String generateRandomPassword();
+public interface UserService {
+    boolean usernameRequiresUpdate(User user, UpdateUserRequest userDto);
+
+    String generateUsername(String firstName, String lastName);
+
+    String generatePassword();
 }

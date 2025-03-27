@@ -9,7 +9,8 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.util.List;
+import java.util.Set;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -27,7 +28,7 @@ public class Trainer extends User {
     private TrainingType specialization;
 
     @ToString.Exclude
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(cascade = CascadeType.MERGE)
     @JoinTable(
             name = "trainers_trainees",
             joinColumns = @JoinColumn(name = "trainer_id"),
@@ -35,9 +36,11 @@ public class Trainer extends User {
             foreignKey = @ForeignKey(name = "trainer_trainee_fk"),
             inverseForeignKey = @ForeignKey(name = "trainee_trainer_fk")
     )
-    private List<Trainee> trainees;
+    @Setter(AccessLevel.PRIVATE)
+    private Set<Trainee> trainees;
 
     @ToString.Exclude
     @OneToMany(mappedBy = "trainer", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private List<Training> trainings;
+    @Setter(AccessLevel.PRIVATE)
+    private Set<Training> trainings;
 }

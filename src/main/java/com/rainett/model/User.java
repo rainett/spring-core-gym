@@ -9,6 +9,7 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.time.LocalDateTime;
 import java.util.Objects;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +19,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString(exclude = "password")
+@ToString
 @Inheritance(strategy = InheritanceType.JOINED)
 @Entity
 @Table(
@@ -40,11 +41,15 @@ public class User {
     @Column(nullable = false)
     private String username;
 
+    @ToString.Exclude
     @Column(nullable = false)
     private String password;
 
     @Column(nullable = false)
-    private Boolean isActive;
+    private Boolean isActive = true;
+
+    @Column(nullable = false)
+    private LocalDateTime activeUpdatedAt = LocalDateTime.now();
 
     @Override
     public boolean equals(Object o) {

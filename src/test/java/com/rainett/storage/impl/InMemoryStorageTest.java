@@ -1,7 +1,6 @@
 package com.rainett.storage.impl;
 
 import com.rainett.annotations.Id;
-import com.rainett.exceptions.EntityNotFoundException;
 import lombok.Data;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
