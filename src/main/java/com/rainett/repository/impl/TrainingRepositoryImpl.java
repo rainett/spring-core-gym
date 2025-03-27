@@ -10,10 +10,12 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.List;
 import java.util.function.BiFunction;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
 
+@Slf4j
 @Repository
 public class TrainingRepositoryImpl extends AbstractHibernateRepository<Training>
         implements TrainingRepository {
@@ -26,6 +28,7 @@ public class TrainingRepositoryImpl extends AbstractHibernateRepository<Training
 
     @Override
     public List<Training> findTraineeTrainings(FindTraineeTrainingsRequest request) {
+        log.debug("Finding trainee trainings for request {}", request);
         Session session = getCurrentSession();
         CriteriaBuilder cb = session.getCriteriaBuilder();
         CriteriaQuery<Training> cq = cb.createQuery(Training.class);
@@ -46,6 +49,7 @@ public class TrainingRepositoryImpl extends AbstractHibernateRepository<Training
 
     @Override
     public List<Training> findTrainerTrainings(FindTrainerTrainingsRequest request) {
+        log.debug("Finding trainer trainings for request {}", request);
         Session session = getCurrentSession();
         CriteriaBuilder cb = session.getCriteriaBuilder();
         CriteriaQuery<Training> cq = cb.createQuery(Training.class);

@@ -37,6 +37,7 @@ public class TrainingServiceImpl implements TrainingService {
     @Authenticated
     @Transactional
     public Training createTraining(@Valid CreateTrainingRequest request) {
+        log.info("Creating training for request {}", request);
         Training training = trainingMapper.toEntity(request);
         TrainingType trainingType = getTrainingType(request.getTrainingType());
         training.setTrainingType(trainingType);
@@ -51,6 +52,7 @@ public class TrainingServiceImpl implements TrainingService {
     @Authenticated
     @Transactional(readOnly = true)
     public List<Training> findTrainingsForTrainee(@Valid FindTraineeTrainingsRequest request) {
+        log.info("Finding trainings for trainee for request {}", request);
         return trainingRepository.findTraineeTrainings(request);
     }
 
@@ -58,6 +60,7 @@ public class TrainingServiceImpl implements TrainingService {
     @Authenticated
     @Transactional(readOnly = true)
     public List<Training> findTrainingsForTrainer(@Valid FindTrainerTrainingsRequest request) {
+        log.info("Finding trainings for trainer for request {}", request);
         return trainingRepository.findTrainerTrainings(request);
     }
 

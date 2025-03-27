@@ -35,6 +35,7 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     @Transactional
     public Trainee createProfile(@Valid CreateTraineeProfileRequest request) {
+        log.info("Creating trainee profile for request {}", request);
         Trainee trainee = traineeMapper.toEntity(request);
         trainee.setIsActive(true);
         String username = userService
@@ -49,6 +50,7 @@ public class TraineeServiceImpl implements TraineeService {
     @Authenticated
     @Transactional(readOnly = true)
     public Trainee findByUsername(@Valid UsernameRequest request) {
+        log.info("Finding trainee profile for request {}", request);
         return getTrainee(request.getUsername());
     }
 
@@ -56,6 +58,7 @@ public class TraineeServiceImpl implements TraineeService {
     @Authenticated
     @Transactional
     public Trainee updatePassword(@Valid UpdatePasswordRequest request) {
+        log.info("Updating trainee password for request {}", request);
         Trainee trainee = getTrainee(request.getUsername());
         trainee.setPassword(request.getNewPassword());
         return trainee;
@@ -65,6 +68,7 @@ public class TraineeServiceImpl implements TraineeService {
     @Authenticated
     @Transactional
     public Trainee updateTrainee(@Valid UpdateTraineeRequest request) {
+        log.info("Updating trainee profile for request {}", request);
         Trainee trainee = getTrainee(request.getUsername());
         if (userService.usernameRequiresUpdate(trainee, request)) {
             traineeMapper.updateEntity(trainee, request);
@@ -79,6 +83,7 @@ public class TraineeServiceImpl implements TraineeService {
     @Authenticated
     @Transactional
     public Trainee setActiveStatus(@Valid UpdateUserActiveRequest request) {
+        log.info("Updating trainee active status for request {}", request);
         Trainee trainee = getTrainee(request.getUsername());
         trainee.setIsActive(request.isActive());
         trainee.setActiveUpdatedAt(LocalDateTime.now());
@@ -89,6 +94,7 @@ public class TraineeServiceImpl implements TraineeService {
     @Authenticated
     @Transactional
     public void deleteProfile(@Valid UsernameRequest request) {
+        log.info("Deleting trainee profile for request {}", request);
         Trainee trainee = getTrainee(request.getUsername());
         for (Trainer trainer : trainee.getTrainers()) {
             trainer.getTrainees().remove(trainee);
@@ -100,6 +106,7 @@ public class TraineeServiceImpl implements TraineeService {
     @Authenticated
     @Transactional
     public Trainee updateTrainers(@Valid UpdateTraineeTrainersRequest request) {
+        log.info("Updating trainee trainers for request {}", request);
         Trainee trainee = getTrainee(request.getUsername());
         List<Trainer> trainers = trainerRepository.findByUsernames(request.getTrainersUsernames());
         trainee.updateTrainers(trainers);

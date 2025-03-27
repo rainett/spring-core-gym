@@ -35,6 +35,7 @@ public class TrainerServiceImpl implements TrainerService {
     @Override
     @Transactional
     public Trainer createProfile(@Valid CreateTrainerProfileRequest request) {
+        log.info("Creating trainer profile for request {}", request);
         Trainer trainer = trainerMapper.toEntity(request);
         TrainingType trainingType = getTrainingType(request.getSpecialization());
         trainer.setSpecialization(trainingType);
@@ -50,6 +51,7 @@ public class TrainerServiceImpl implements TrainerService {
     @Authenticated
     @Transactional(readOnly = true)
     public Trainer findByUsername(@Valid UsernameRequest request) {
+        log.info("Finding trainer profile for request {}", request);
         return getTrainer(request.getUsername());
     }
 
@@ -57,6 +59,7 @@ public class TrainerServiceImpl implements TrainerService {
     @Authenticated
     @Transactional
     public Trainer updatePassword(@Valid UpdatePasswordRequest request) {
+        log.info("Updating trainer password for request {}", request);
         Trainer trainer = getTrainer(request.getUsername());
         trainer.setPassword(request.getNewPassword());
         return trainer;
@@ -66,6 +69,7 @@ public class TrainerServiceImpl implements TrainerService {
     @Authenticated
     @Transactional
     public Trainer updateTrainer(@Valid UpdateTrainerRequest request) {
+        log.info("Updating trainer profile for request {}", request);
         Trainer trainer = getTrainer(request.getUsername());
         trainerMapper.updateEntity(trainer, request);
         if (userService.usernameRequiresUpdate(trainer, request)) {
@@ -80,6 +84,7 @@ public class TrainerServiceImpl implements TrainerService {
     @Authenticated
     @Transactional
     public Trainer setActiveStatus(@Valid UpdateUserActiveRequest request) {
+        log.info("Updating trainer active status for request {}", request);
         Trainer trainer = getTrainer(request.getUsername());
         trainer.setIsActive(request.isActive());
         trainer.setActiveUpdatedAt(LocalDateTime.now());
@@ -90,12 +95,14 @@ public class TrainerServiceImpl implements TrainerService {
     @Authenticated
     @Transactional(readOnly = true)
     public List<Trainer> getTrainersWithoutTraineeByUsername(@Valid UsernameRequest request) {
+        log.info("Finding trainers without trainee for request {}", request);
         return trainerRepository.findWithoutTraineeByUsername(request.getUsername());
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Trainee> getTraineesByTrainerUsername(String trainerUsername) {
+        log.info("Finding trainees by trainer username {}", trainerUsername);
         return getTrainer(trainerUsername).getTrainees().stream().toList();
     }
 

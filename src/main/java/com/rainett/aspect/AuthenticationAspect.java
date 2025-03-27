@@ -3,11 +3,13 @@ package com.rainett.aspect;
 import com.rainett.dto.AuthenticatedRequest;
 import com.rainett.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Aspect
 @Component
 @RequiredArgsConstructor
@@ -18,6 +20,7 @@ public class AuthenticationAspect {
     public Object authenticateRequest(ProceedingJoinPoint joinPoint)
             throws Throwable {
         AuthenticatedRequest request = findAuthenticatedRequest(joinPoint.getArgs());
+        log.debug("Authenticating request for user: {}", request.getIdentity());
         if (!authenticationService.match(request.getIdentity(), request.getPassword())) {
             throw new SecurityException("Authentication failed for user: " + request.getIdentity());
         }
