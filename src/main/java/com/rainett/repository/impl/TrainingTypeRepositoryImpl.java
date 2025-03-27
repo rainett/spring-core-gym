@@ -13,7 +13,7 @@ public class TrainingTypeRepositoryImpl extends AbstractHibernateRepository<Trai
         implements TrainingTypeRepository {
 
     public TrainingTypeRepositoryImpl(SessionFactory sessionFactory) {
-        super(TrainingType.class, sessionFactory);
+        super(sessionFactory);
     }
 
     @Override

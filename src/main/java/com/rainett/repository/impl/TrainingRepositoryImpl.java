@@ -23,7 +23,7 @@ public class TrainingRepositoryImpl extends AbstractHibernateRepository<Training
     private static final String DATE_FIELD = "date";
 
     public TrainingRepositoryImpl(SessionFactory sessionFactory) {
-        super(Training.class, sessionFactory);
+        super(sessionFactory);
     }
 
     @Override

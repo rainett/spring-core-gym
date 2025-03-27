@@ -53,7 +53,6 @@ public class ValidationAspect {
                 }
             }
         }
-
         if (!violations.isEmpty()) {
             log.warn("Validation errors: {}", violations);
             return false;

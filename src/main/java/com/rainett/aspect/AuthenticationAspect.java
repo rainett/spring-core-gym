@@ -24,7 +24,6 @@ public class AuthenticationAspect {
         if (!authenticationService.match(request.getIdentity(), request.getPassword())) {
             throw new SecurityException("Authentication failed for user: " + request.getIdentity());
         }
-
         return joinPoint.proceed();
     }
 

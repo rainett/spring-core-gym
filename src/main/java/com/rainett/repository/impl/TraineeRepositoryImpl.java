@@ -13,7 +13,7 @@ public class TraineeRepositoryImpl extends AbstractHibernateRepository<Trainee>
         implements TraineeRepository {
 
     public TraineeRepositoryImpl(SessionFactory sessionFactory) {
-        super(Trainee.class, sessionFactory);
+        super(sessionFactory);
     }
 
     @Override

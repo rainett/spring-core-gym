@@ -24,7 +24,8 @@ import lombok.ToString;
 @Table(name = "trainers")
 public class Trainer extends User {
     @ManyToOne(optional = false)
-    @JoinColumn(name = "training_type_id", nullable = false)
+    @JoinColumn(name = "training_type_id", nullable = false,
+            foreignKey = @ForeignKey(name = "trainer_training_type_fk"))
     private TrainingType specialization;
 
     @ToString.Exclude

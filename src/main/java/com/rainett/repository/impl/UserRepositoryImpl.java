@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository;
 public class UserRepositoryImpl extends AbstractHibernateRepository<User>
         implements UserRepository {
     public UserRepositoryImpl(SessionFactory sessionFactory) {
-        super(User.class, sessionFactory);
+        super(sessionFactory);
     }
 
     @Override

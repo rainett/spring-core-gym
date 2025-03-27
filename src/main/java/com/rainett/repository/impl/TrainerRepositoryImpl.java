@@ -14,7 +14,7 @@ public class TrainerRepositoryImpl extends AbstractHibernateRepository<Trainer>
         implements TrainerRepository {
 
     public TrainerRepositoryImpl(SessionFactory sessionFactory) {
-        super(Trainer.class, sessionFactory);
+        super(sessionFactory);
     }
 
     @Override

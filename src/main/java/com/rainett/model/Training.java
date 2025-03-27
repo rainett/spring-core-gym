@@ -40,7 +40,8 @@ public class Training {
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "training_type_id")
+    @JoinColumn(name = "training_type_id",
+            foreignKey = @ForeignKey(name = "training_training_type_fk"))
     private TrainingType trainingType;
 
     @Column(nullable = false)

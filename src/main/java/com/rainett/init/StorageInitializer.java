@@ -5,20 +5,20 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
+@Slf4j
+@RequiredArgsConstructor
 public class StorageInitializer {
     private final String dataFile;
     private final SessionFactory sessionFactory;
 
-    public StorageInitializer(String dataFile, SessionFactory sessionFactory) {
-        this.dataFile = dataFile;
-        this.sessionFactory = sessionFactory;
-    }
-
     public void initializeData() {
+        log.info("Loading data from file: {}", dataFile);
         try (Session session = sessionFactory.openSession()) {
             Transaction tx = session.beginTransaction();
             String sql = getQuery(dataFile);
