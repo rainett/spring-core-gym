@@ -1,57 +1,121 @@
 package com.rainett.service.impl;
 
-import com.rainett.dao.TraineeDao;
+import com.rainett.annotations.Authenticated;
+import com.rainett.dto.trainee.CreateTraineeProfileRequest;
+import com.rainett.dto.user.UpdateUserActiveRequest;
+import com.rainett.dto.user.UsernameRequest;
+import com.rainett.dto.user.UpdatePasswordRequest;
+import com.rainett.dto.trainee.UpdateTraineeRequest;
+import com.rainett.dto.trainee.UpdateTraineeTrainersRequest;
+import com.rainett.exceptions.EntityNotFoundException;
+import com.rainett.mapper.TraineeMapper;
 import com.rainett.model.Trainee;
+import com.rainett.model.Trainer;
+import com.rainett.repository.TraineeRepository;
+import com.rainett.repository.TrainerRepository;
 import com.rainett.service.TraineeService;
 import com.rainett.service.UserService;
+import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class TraineeServiceImpl implements TraineeService {
-    @Autowired
-    private TraineeDao traineeDao;
-
-    @Autowired
-    private UserService userService;
+    private final TraineeRepository traineeRepository;
+    private final TrainerRepository trainerRepository;
+    private final TraineeMapper traineeMapper;
+    private final UserService userService;
 
     @Override
-    public Trainee createProfile(Trainee trainee) {
-        log.info("Creating trainee profile for: {}", trainee);
+    @Transactional
+    public Trainee createProfile(@Valid CreateTraineeProfileRequest request) {
+        log.info("Creating trainee profile for request {}", request);
+        Trainee trainee = traineeMapper.toEntity(request);
+        trainee.setIsActive(true);
         String username = userService
-                .generateUniqueUsername(trainee.getFirstName(), trainee.getLastName());
+                .generateUsername(request.getFirstName(), request.getLastName());
+        String password = userService.generatePassword();
         trainee.setUsername(username);
-        trainee.setPassword(userService.generateRandomPassword());
-        return traineeDao.save(trainee);
+        trainee.setPassword(password);
+        return traineeRepository.save(trainee);
     }
 
     @Override
-    public Trainee updateProfile(Trainee trainee) {
-        log.info("Updating trainee profile for: {}", trainee);
-        if (traineeDao.findByUserId(trainee.getUserId()) == null) {
-            throw new IllegalArgumentException("Trainee not found");
+    @Authenticated
+    @Transactional(readOnly = true)
+    public Trainee findByUsername(@Valid UsernameRequest request) {
+        log.info("Finding trainee profile for request {}", request);
+        return getTrainee(request.getUsername());
+    }
+
+    @Override
+    @Authenticated
+    @Transactional
+    public Trainee updatePassword(@Valid UpdatePasswordRequest request) {
+        log.info("Updating trainee password for request {}", request);
+        Trainee trainee = getTrainee(request.getUsername());
+        trainee.setPassword(request.getNewPassword());
+        return trainee;
+    }
+
+    @Override
+    @Authenticated
+    @Transactional
+    public Trainee updateTrainee(@Valid UpdateTraineeRequest request) {
+        log.info("Updating trainee profile for request {}", request);
+        Trainee trainee = getTrainee(request.getUsername());
+        if (userService.usernameRequiresUpdate(trainee, request)) {
+            traineeMapper.updateEntity(trainee, request);
+            String username = userService
+                    .generateUsername(request.getFirstName(), request.getLastName());
+            trainee.setUsername(username);
         }
-        return traineeDao.save(trainee);
+        return trainee;
     }
 
     @Override
-    public void deleteProfile(Long userId) {
-        log.info("Deleting trainee profile for: {}", userId);
-        traineeDao.deleteByUserId(userId);
+    @Authenticated
+    @Transactional
+    public Trainee setActiveStatus(@Valid UpdateUserActiveRequest request) {
+        log.info("Updating trainee active status for request {}", request);
+        Trainee trainee = getTrainee(request.getUsername());
+        trainee.setIsActive(request.isActive());
+        trainee.setActiveUpdatedAt(LocalDateTime.now());
+        return trainee;
     }
 
     @Override
-    public Trainee getProfile(Long userId) {
-        log.info("Getting trainee profile for: {}", userId);
-        return traineeDao.findByUserId(userId);
+    @Authenticated
+    @Transactional
+    public void deleteProfile(@Valid UsernameRequest request) {
+        log.info("Deleting trainee profile for request {}", request);
+        Trainee trainee = getTrainee(request.getUsername());
+        for (Trainer trainer : trainee.getTrainers()) {
+            trainer.getTrainees().remove(trainee);
+        }
+        traineeRepository.delete(trainee);
     }
 
     @Override
-    public List<Trainee> getAll() {
-        log.info("Getting all trainees");
-        return traineeDao.findAll();
+    @Authenticated
+    @Transactional
+    public Trainee updateTrainers(@Valid UpdateTraineeTrainersRequest request) {
+        log.info("Updating trainee trainers for request {}", request);
+        Trainee trainee = getTrainee(request.getUsername());
+        List<Trainer> trainers = trainerRepository.findByUsernames(request.getTrainersUsernames());
+        trainee.updateTrainers(trainers);
+        return trainee;
+    }
+
+    private Trainee getTrainee(String username) {
+        return traineeRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Trainee not found for username = [" + username + "]"));
     }
 }

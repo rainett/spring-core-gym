@@ -1,16 +1,25 @@
 package com.rainett.service;
 
+import com.rainett.dto.trainee.CreateTraineeProfileRequest;
+import com.rainett.dto.user.UpdateUserActiveRequest;
+import com.rainett.dto.user.UsernameRequest;
+import com.rainett.dto.user.UpdatePasswordRequest;
+import com.rainett.dto.trainee.UpdateTraineeRequest;
+import com.rainett.dto.trainee.UpdateTraineeTrainersRequest;
 import com.rainett.model.Trainee;
-import java.util.List;
 
 public interface TraineeService {
-    Trainee createProfile(Trainee trainee);
+    Trainee createProfile(CreateTraineeProfileRequest request);
 
-    Trainee updateProfile(Trainee trainee);
+    Trainee findByUsername(UsernameRequest request);
 
-    void deleteProfile(Long userId);
+    Trainee updatePassword(UpdatePasswordRequest request);
 
-    Trainee getProfile(Long userId);
+    Trainee updateTrainee(UpdateTraineeRequest request);
 
-    List<Trainee> getAll();
+    Trainee setActiveStatus(UpdateUserActiveRequest request);
+
+    void deleteProfile(UsernameRequest request);
+
+    Trainee updateTrainers(UpdateTraineeTrainersRequest request);
 }

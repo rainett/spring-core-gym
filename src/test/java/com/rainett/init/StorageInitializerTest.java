@@ -6,11 +6,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.rainett.exceptions.DataLoadException;
 import com.rainett.model.Trainee;
 import com.rainett.model.Trainer;
 import com.rainett.model.Training;
-import com.rainett.storage.impl.InMemoryStorage;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
