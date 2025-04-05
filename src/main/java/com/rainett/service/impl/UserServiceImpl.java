@@ -1,6 +1,5 @@
 package com.rainett.service.impl;
 
-import com.rainett.dto.user.UpdateUserRequest;
 import com.rainett.model.User;
 import com.rainett.repository.UserRepository;
 import com.rainett.service.UserService;

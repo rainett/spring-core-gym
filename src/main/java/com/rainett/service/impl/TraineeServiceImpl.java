@@ -3,7 +3,6 @@ package com.rainett.service.impl;
 import com.rainett.annotations.Authenticated;
 import com.rainett.dto.trainee.CreateTraineeRequest;
 import com.rainett.dto.user.UpdateUserActiveRequest;
-import com.rainett.dto.user.UsernameRequest;
 import com.rainett.dto.user.UpdatePasswordRequest;
 import com.rainett.dto.trainee.UpdateTraineeRequest;
 import com.rainett.dto.trainee.UpdateTraineeTrainersRequest;

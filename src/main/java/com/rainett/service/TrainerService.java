@@ -1,26 +1,21 @@
 package com.rainett.service;
 
-import com.rainett.dto.user.UpdatePasswordRequest;
-import com.rainett.dto.user.UpdateUserActiveRequest;
-import com.rainett.dto.user.UsernameRequest;
-import com.rainett.dto.trainer.CreateTrainerProfileRequest;
+import com.rainett.dto.trainer.CreateTrainerRequest;
+import com.rainett.dto.trainer.TrainerResponse;
 import com.rainett.dto.trainer.UpdateTrainerRequest;
-import com.rainett.model.Trainee;
-import com.rainett.model.Trainer;
-import java.util.List;
+import com.rainett.dto.user.UserCredentialsResponse;
+import com.rainett.dto.user.UserTrainingsResponse;
+import java.time.LocalDate;
 
 public interface TrainerService {
-    Trainer createProfile(CreateTrainerProfileRequest request);
+    TrainerResponse findByUsername(String username);
 
-    Trainer findByUsername(UsernameRequest request);
+    UserTrainingsResponse findTrainings(String username,
+                                        LocalDate from,
+                                        LocalDate to,
+                                        String traineeUsername);
 
-    Trainer updatePassword(UpdatePasswordRequest request);
+    UserCredentialsResponse createProfile(CreateTrainerRequest request);
 
-    Trainer updateTrainer(UpdateTrainerRequest request);
-
-    Trainer setActiveStatus(UpdateUserActiveRequest request);
-
-    List<Trainer> getTrainersWithoutTraineeByUsername(UsernameRequest request);
-
-    List<Trainee> getTraineesByTrainerUsername(String trainerUsername);
+    TrainerResponse updateTrainer(String username, UpdateTrainerRequest request);
 }

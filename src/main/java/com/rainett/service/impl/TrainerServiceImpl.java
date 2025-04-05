@@ -1,11 +1,10 @@
 package com.rainett.service.impl;
 
 import com.rainett.annotations.Authenticated;
-import com.rainett.dto.trainer.CreateTrainerProfileRequest;
+import com.rainett.dto.trainer.CreateTrainerRequest;
 import com.rainett.dto.trainer.UpdateTrainerRequest;
 import com.rainett.dto.user.UpdatePasswordRequest;
 import com.rainett.dto.user.UpdateUserActiveRequest;
-import com.rainett.dto.user.UsernameRequest;
 import com.rainett.exceptions.EntityNotFoundException;
 import com.rainett.mapper.TrainerMapper;
 import com.rainett.model.Trainee;
@@ -34,7 +33,7 @@ public class TrainerServiceImpl implements TrainerService {
 
     @Override
     @Transactional
-    public Trainer createProfile(@Valid CreateTrainerProfileRequest request) {
+    public Trainer createProfile(@Valid CreateTrainerRequest request) {
         log.info("Creating trainer profile for request {}", request);
         Trainer trainer = trainerMapper.toEntity(request);
         TrainingType trainingType = getTrainingType(request.getSpecialization());

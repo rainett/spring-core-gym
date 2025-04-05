@@ -46,6 +46,12 @@ public class TraineeController {
         return ResponseEntity.ok(userTrainingsResponse);
     }
 
+    @GetMapping("/{username}/unassigned-trainers")
+    public ResponseEntity<TraineeTrainerDto> getUnassignedTrainers(@PathVariable String username) {
+        TraineeTrainerDto traineeTrainerDto = traineeService.findUnassignedTrainers(username);
+        return ResponseEntity.ok(traineeTrainerDto);
+    }
+
     @PostMapping
     public ResponseEntity<UserCredentialsResponse> createTrainee(@Valid CreateTraineeRequest request) {
         UserCredentialsResponse userCredentialsResponse = traineeService.createProfile(request);
@@ -55,7 +61,7 @@ public class TraineeController {
     @PutMapping("/{username}")
     public ResponseEntity<TraineeResponse> updateTrainee(
             @PathVariable String username,
-            UpdateTraineeRequest request) {
+            @Valid UpdateTraineeRequest request) {
         TraineeResponse traineeResponse = traineeService.updateTrainee(username, request);
         return ResponseEntity.ok(traineeResponse);
     }
@@ -63,7 +69,7 @@ public class TraineeController {
     @PutMapping("/{username}/trainers")
     public ResponseEntity<TraineeTrainerDto> updateTrainers(
             @PathVariable String username,
-            UpdateTraineeTrainersRequest request) {
+            @Valid UpdateTraineeTrainersRequest request) {
         TraineeTrainerDto trainerDto = traineeService.updateTrainers(username, request);
         return ResponseEntity.ok(trainerDto);
     }

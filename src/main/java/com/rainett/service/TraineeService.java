@@ -18,6 +18,8 @@ public interface TraineeService {
                                         String trainerUsername,
                                         String trainingType);
 
+    TraineeTrainerDto findUnassignedTrainers(String username);
+
     UserCredentialsResponse createProfile(CreateTraineeRequest request);
 
     TraineeResponse updateTrainee(String username, UpdateTraineeRequest request);

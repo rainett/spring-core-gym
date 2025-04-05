@@ -1,6 +1,5 @@
 package com.rainett.service;
 
-import com.rainett.dto.user.UpdateUserRequest;
 import com.rainett.model.User;
 
 public interface UserService {

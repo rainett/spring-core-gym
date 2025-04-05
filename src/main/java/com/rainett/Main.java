@@ -3,14 +3,13 @@ package com.rainett;
 import com.rainett.dto.trainee.CreateTraineeRequest;
 import com.rainett.dto.trainee.UpdateTraineeRequest;
 import com.rainett.dto.trainee.UpdateTraineeTrainersRequest;
-import com.rainett.dto.trainer.CreateTrainerProfileRequest;
+import com.rainett.dto.trainer.CreateTrainerRequest;
 import com.rainett.dto.trainer.UpdateTrainerRequest;
 import com.rainett.dto.training.CreateTrainingRequest;
 import com.rainett.dto.training.FindTraineeTrainingsRequest;
 import com.rainett.dto.training.FindTrainerTrainingsRequest;
 import com.rainett.dto.user.UpdatePasswordRequest;
 import com.rainett.dto.user.UpdateUserActiveRequest;
-import com.rainett.dto.user.UsernameRequest;
 import com.rainett.facade.TrainingFacade;
 import com.rainett.model.Trainee;
 import com.rainett.model.Trainer;
@@ -42,7 +41,7 @@ public class Main {
         traineeService.createProfile(request);
 
         TrainerService trainerService = trainingFacade.getTrainerService();
-        CreateTrainerProfileRequest request1 = new CreateTrainerProfileRequest();
+        CreateTrainerRequest request1 = new CreateTrainerRequest();
         request1.setFirstName("Jane");
         request1.setLastName("Doe");
         request1.setSpecialization("Boxing");
