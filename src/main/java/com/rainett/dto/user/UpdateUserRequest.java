@@ -1,18 +1,13 @@
 package com.rainett.dto.user;
 
-import com.rainett.dto.AuthenticatedRequest;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class UpdateUserRequest extends AuthenticatedRequest {
-    @NotBlank
-    private String username;
-
+public class UpdateUserRequest {
     @NotBlank
     @Size(max = 50)
     @Pattern(regexp = "^[A-Za-z]+(?:[\\s'-][A-Za-z]+)*$")
@@ -22,4 +17,7 @@ public class UpdateUserRequest extends AuthenticatedRequest {
     @Size(max = 50)
     @Pattern(regexp = "^[A-Za-z]+(?:[\\s'-][A-Za-z]+)*$")
     private String lastName;
+
+    @NotNull
+    private Boolean isActive;
 }

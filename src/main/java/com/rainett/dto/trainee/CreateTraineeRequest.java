@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import lombok.Data;
 
 @Data
-public class CreateTraineeProfileRequest {
+public class CreateTraineeRequest {
     @NotBlank
     @Size(max = 50)
     @Pattern(regexp = "^[A-Za-z]+(?:[\\s'-][A-Za-z]+)*$")

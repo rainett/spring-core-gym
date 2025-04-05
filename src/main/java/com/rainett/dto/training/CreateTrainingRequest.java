@@ -1,6 +1,5 @@
 package com.rainett.dto.training;
 
-import com.rainett.dto.AuthenticatedRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;

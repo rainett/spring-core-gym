@@ -1,6 +1,6 @@
 package com.rainett;
 
-import com.rainett.dto.trainee.CreateTraineeProfileRequest;
+import com.rainett.dto.trainee.CreateTraineeRequest;
 import com.rainett.dto.trainee.UpdateTraineeRequest;
 import com.rainett.dto.trainee.UpdateTraineeTrainersRequest;
 import com.rainett.dto.trainer.CreateTrainerProfileRequest;
@@ -31,7 +31,7 @@ public class Main {
         TrainingFacade trainingFacade = context.getBean(TrainingFacade.class);
 
         TraineeService traineeService = trainingFacade.getTraineeService();
-        CreateTraineeProfileRequest request = new CreateTraineeProfileRequest();
+        CreateTraineeRequest request = new CreateTraineeRequest();
         request.setFirstName("John");
         request.setLastName("Doe");
         request.setAddress("123 Main St");
@@ -96,10 +96,10 @@ public class Main {
         request6.setPassword(traineeProfile.getPassword());
         request6.setUsername(username);
         request6.setTrainersUsernames(List.of("Jane.Doe", "Jane.Doe.1"));
-        trainee = traineeService.updateTrainers(request6);
+        trainee = traineeService.updateTrainers(username, request6);
         System.out.println("\nTrainee " + username + " updated trainers: " + trainee.getTrainers() + "\n");
         request6.setTrainersUsernames(List.of("Jane.Doe"));
-        trainee = traineeService.updateTrainers(request6);
+        trainee = traineeService.updateTrainers(username, request6);
         System.out.println("\nTrainee " + username + " updated trainers: " + trainee.getTrainers() + "\n");
 
         UsernameRequest request7 = new UsernameRequest();

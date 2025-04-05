@@ -1,7 +1,7 @@
 package com.rainett.service.impl;
 
 import com.rainett.annotations.Authenticated;
-import com.rainett.dto.trainee.CreateTraineeProfileRequest;
+import com.rainett.dto.trainee.CreateTraineeRequest;
 import com.rainett.dto.user.UpdateUserActiveRequest;
 import com.rainett.dto.user.UsernameRequest;
 import com.rainett.dto.user.UpdatePasswordRequest;
@@ -34,7 +34,7 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     @Transactional
-    public Trainee createProfile(@Valid CreateTraineeProfileRequest request) {
+    public Trainee createProfile(@Valid CreateTraineeRequest request) {
         log.info("Creating trainee profile for request {}", request);
         Trainee trainee = traineeMapper.toEntity(request);
         trainee.setIsActive(true);
@@ -105,7 +105,7 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     @Authenticated
     @Transactional
-    public Trainee updateTrainers(@Valid UpdateTraineeTrainersRequest request) {
+    public Trainee updateTrainers(String username, @Valid UpdateTraineeTrainersRequest request) {
         log.info("Updating trainee trainers for request {}", request);
         Trainee trainee = getTrainee(request.getUsername());
         List<Trainer> trainers = trainerRepository.findByUsernames(request.getTrainersUsernames());

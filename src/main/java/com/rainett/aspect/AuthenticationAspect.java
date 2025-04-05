@@ -1,6 +1,5 @@
 package com.rainett.aspect;
 
-import com.rainett.dto.AuthenticatedRequest;
 import com.rainett.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
