@@ -1,11 +1,14 @@
 package com.rainett.service;
 
-import com.rainett.model.User;
+import com.rainett.dto.user.LoginRequest;
+import com.rainett.dto.user.UpdatePasswordRequest;
+import com.rainett.dto.user.UpdateUserActiveRequest;
+import jakarta.validation.Valid;
 
 public interface UserService {
-    boolean usernameRequiresUpdate(User user, UpdateUserRequest userDto);
+    void login(LoginRequest request);
 
-    String generateUsername(String firstName, String lastName);
+    void updatePassword(String username, UpdatePasswordRequest request);
 
-    String generatePassword();
+    void updateStatus(String username, UpdateUserActiveRequest request);
 }
