@@ -6,8 +6,6 @@ import com.rainett.dto.trainee.UpdateTraineeTrainersRequest;
 import com.rainett.dto.trainer.CreateTrainerRequest;
 import com.rainett.dto.trainer.UpdateTrainerRequest;
 import com.rainett.dto.training.CreateTrainingRequest;
-import com.rainett.dto.training.FindTraineeTrainingsRequest;
-import com.rainett.dto.training.FindTrainerTrainingsRequest;
 import com.rainett.dto.user.UpdatePasswordRequest;
 import com.rainett.dto.user.UpdateUserActiveRequest;
 import com.rainett.facade.TrainingFacade;

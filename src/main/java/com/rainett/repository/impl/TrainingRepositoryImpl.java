@@ -1,7 +1,5 @@
 package com.rainett.repository.impl;
 
-import com.rainett.dto.training.FindTraineeTrainingsRequest;
-import com.rainett.dto.training.FindTrainerTrainingsRequest;
 import com.rainett.model.Training;
 import com.rainett.repository.TrainingRepository;
 import jakarta.persistence.criteria.CriteriaBuilder;

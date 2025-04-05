@@ -1,7 +1,5 @@
 package com.rainett.repository;
 
-import com.rainett.dto.training.FindTraineeTrainingsRequest;
-import com.rainett.dto.training.FindTrainerTrainingsRequest;
 import com.rainett.model.Training;
 import java.util.List;
 

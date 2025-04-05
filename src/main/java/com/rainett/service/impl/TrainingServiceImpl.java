@@ -2,8 +2,6 @@ package com.rainett.service.impl;
 
 import com.rainett.annotations.Authenticated;
 import com.rainett.dto.training.CreateTrainingRequest;
-import com.rainett.dto.training.FindTraineeTrainingsRequest;
-import com.rainett.dto.training.FindTrainerTrainingsRequest;
 import com.rainett.exceptions.EntityNotFoundException;
 import com.rainett.mapper.TrainingMapper;
 import com.rainett.model.Trainee;
