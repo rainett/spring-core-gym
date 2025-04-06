@@ -12,7 +12,6 @@ import com.rainett.model.TrainingType;
 import com.rainett.repository.TrainerRepository;
 import com.rainett.repository.TrainingTypeRepository;
 import com.rainett.service.TrainerService;
-import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -46,7 +45,7 @@ public class TrainerServiceImpl implements TrainerService {
 
     @Override
     @Transactional
-    public UserCredentialsResponse createProfile(@Valid CreateTrainerRequest request) {
+    public UserCredentialsResponse createProfile(CreateTrainerRequest request) {
         Trainer trainer = trainerMapper.toEntity(request);
         TrainingType trainingType = getTrainingType(request.getSpecialization());
         trainer.setSpecialization(trainingType);

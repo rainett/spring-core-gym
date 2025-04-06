@@ -14,7 +14,6 @@ import com.rainett.model.Trainer;
 import com.rainett.repository.TraineeRepository;
 import com.rainett.repository.TrainerRepository;
 import com.rainett.service.TraineeService;
-import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -58,7 +57,7 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     @Transactional
-    public UserCredentialsResponse createProfile(@Valid CreateTraineeRequest request) {
+    public UserCredentialsResponse createProfile(CreateTraineeRequest request) {
         Trainee trainee = traineeMapper.toEntity(request);
         trainee.setIsActive(true);
         trainee = traineeRepository.save(trainee);
@@ -76,7 +75,7 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     @Transactional
-    public List<TraineeTrainerDto> updateTrainers(String username, @Valid UpdateTraineeTrainersRequest request) {
+    public List<TraineeTrainerDto> updateTrainers(String username, UpdateTraineeTrainersRequest request) {
         Trainee trainee = getTrainee(username);
         List<Trainer> trainers = trainerRepository.findByUsernames(request.getTrainersUsernames());
         trainee.updateTrainers(trainers);
