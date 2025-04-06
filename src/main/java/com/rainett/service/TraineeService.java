@@ -6,25 +6,26 @@ import com.rainett.dto.trainee.TraineeTrainerDto;
 import com.rainett.dto.trainee.UpdateTraineeRequest;
 import com.rainett.dto.trainee.UpdateTraineeTrainersRequest;
 import com.rainett.dto.user.UserCredentialsResponse;
-import com.rainett.dto.user.UserTrainingsResponse;
+import com.rainett.dto.trainee.TraineeTrainingsResponse;
 import java.time.LocalDate;
+import java.util.List;
 
 public interface TraineeService {
     TraineeResponse findByUsername(String username);
 
-    UserTrainingsResponse findTrainings(String username,
-                                        LocalDate from,
-                                        LocalDate to,
-                                        String trainerUsername,
-                                        String trainingType);
+    List<TraineeTrainingsResponse> findTrainings(String username,
+                                                 LocalDate from,
+                                                 LocalDate to,
+                                                 String trainerUsername,
+                                                 String trainingType);
 
-    TraineeTrainerDto findUnassignedTrainers(String username);
+    List<TraineeTrainerDto> findUnassignedTrainers(String username);
 
     UserCredentialsResponse createProfile(CreateTraineeRequest request);
 
     TraineeResponse updateTrainee(String username, UpdateTraineeRequest request);
 
-    TraineeTrainerDto updateTrainers(String username, UpdateTraineeTrainersRequest request);
+    List<TraineeTrainerDto> updateTrainers(String username, UpdateTraineeTrainersRequest request);
 
     void deleteProfile(String username);
 }

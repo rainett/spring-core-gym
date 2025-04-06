@@ -14,9 +14,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private static final String USERNAME_FORMATTER = "%s.%s";
     private static final String NUMERIC_USERNAME_FORMATTER = "%s.%d";
-    private static final int PASSWORD_LENGTH = 10;
 
     private final UserRepository userRepository;
 

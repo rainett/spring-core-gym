@@ -6,10 +6,11 @@ import com.rainett.dto.trainee.TraineeTrainerDto;
 import com.rainett.dto.trainee.UpdateTraineeRequest;
 import com.rainett.dto.trainee.UpdateTraineeTrainersRequest;
 import com.rainett.dto.user.UserCredentialsResponse;
-import com.rainett.dto.user.UserTrainingsResponse;
+import com.rainett.dto.trainee.TraineeTrainingsResponse;
 import com.rainett.service.TraineeService;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,20 +36,20 @@ public class TraineeController {
     }
 
     @GetMapping("/{username}/trainings")
-    public ResponseEntity<UserTrainingsResponse> getTraineeTrainings(
+    public ResponseEntity<List<TraineeTrainingsResponse>> getTraineeTrainings(
             @PathVariable String username,
             @RequestParam(required = false) LocalDate from,
             @RequestParam(required = false) LocalDate to,
             @RequestParam(required = false) String trainerUsername,
             @RequestParam(required = false) String trainingType) {
-        UserTrainingsResponse userTrainingsResponse = traineeService
+        List<TraineeTrainingsResponse> traineeTrainingsResponse = traineeService
                 .findTrainings(username, from, to, trainerUsername, trainingType);
-        return ResponseEntity.ok(userTrainingsResponse);
+        return ResponseEntity.ok(traineeTrainingsResponse);
     }
 
     @GetMapping("/{username}/unassigned-trainers")
-    public ResponseEntity<TraineeTrainerDto> getUnassignedTrainers(@PathVariable String username) {
-        TraineeTrainerDto traineeTrainerDto = traineeService.findUnassignedTrainers(username);
+    public ResponseEntity<List<TraineeTrainerDto>> getUnassignedTrainers(@PathVariable String username) {
+        List<TraineeTrainerDto> traineeTrainerDto = traineeService.findUnassignedTrainers(username);
         return ResponseEntity.ok(traineeTrainerDto);
     }
 
@@ -67,10 +68,10 @@ public class TraineeController {
     }
 
     @PutMapping("/{username}/trainers")
-    public ResponseEntity<TraineeTrainerDto> updateTrainers(
+    public ResponseEntity<List<TraineeTrainerDto>> updateTrainers(
             @PathVariable String username,
             @Valid UpdateTraineeTrainersRequest request) {
-        TraineeTrainerDto trainerDto = traineeService.updateTrainers(username, request);
+        List<TraineeTrainerDto> trainerDto = traineeService.updateTrainers(username, request);
         return ResponseEntity.ok(trainerDto);
     }
 

@@ -1,8 +1,11 @@
 package com.rainett.mapper;
 
 import com.rainett.dto.trainee.CreateTraineeRequest;
+import com.rainett.dto.trainee.TraineeResponse;
+import com.rainett.dto.trainee.TraineeTrainerDto;
 import com.rainett.dto.trainee.UpdateTraineeRequest;
 import com.rainett.model.Trainee;
+import com.rainett.model.Trainer;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -13,4 +16,8 @@ public interface TraineeMapper {
 
     @Mapping(target = "username", ignore = true)
     void updateEntity(@MappingTarget Trainee trainee, UpdateTraineeRequest request);
+
+    TraineeResponse toDto(Trainee trainee);
+
+    TraineeTrainerDto toTrainerDto(Trainer trainer);
 }

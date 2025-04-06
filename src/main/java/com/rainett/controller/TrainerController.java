@@ -2,9 +2,10 @@ package com.rainett.controller;
 
 import com.rainett.dto.trainer.CreateTrainerRequest;
 import com.rainett.dto.trainer.TrainerResponse;
+import com.rainett.dto.trainer.TrainerTrainingsResponse;
 import com.rainett.dto.trainer.UpdateTrainerRequest;
 import com.rainett.dto.user.UserCredentialsResponse;
-import com.rainett.dto.user.UserTrainingsResponse;
+import com.rainett.dto.trainee.TraineeTrainingsResponse;
 import com.rainett.service.TrainerService;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
@@ -32,14 +33,14 @@ public class TrainerController {
     }
 
     @GetMapping("/{username}/trainings")
-    public ResponseEntity<UserTrainingsResponse> getTrainerTrainings(
+    public ResponseEntity<TrainerTrainingsResponse> getTrainerTrainings(
             @PathVariable String username,
             @RequestParam(required = false) LocalDate from,
             @RequestParam(required = false) LocalDate to,
             @RequestParam(required = false) String traineeUsername) {
-        UserTrainingsResponse userTrainingsResponse = trainerService
+        TrainerTrainingsResponse trainerTrainingsResponse = trainerService
                 .findTrainings(username, from, to, traineeUsername);
-        return ResponseEntity.ok(userTrainingsResponse);
+        return ResponseEntity.ok(trainerTrainingsResponse);
     }
 
     @PostMapping
