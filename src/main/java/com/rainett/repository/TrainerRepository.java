@@ -12,8 +12,6 @@ public interface TrainerRepository extends GenericRepository<Trainer> {
 
     Optional<Trainer> findByUsername(String username);
 
-    List<Trainer> findWithoutTraineeByUsername(String username);
-
     Optional<TrainerResponse> findTrainerDtoByUsername(String username);
 
     List<TrainerTrainingResponse> findTrainerTrainingsDto(String username, LocalDate from,
