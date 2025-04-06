@@ -2,13 +2,13 @@ package com.rainett.controller;
 
 import com.rainett.dto.trainer.CreateTrainerRequest;
 import com.rainett.dto.trainer.TrainerResponse;
-import com.rainett.dto.trainer.TrainerTrainingsResponse;
+import com.rainett.dto.trainer.TrainerTrainingResponse;
 import com.rainett.dto.trainer.UpdateTrainerRequest;
 import com.rainett.dto.user.UserCredentialsResponse;
-import com.rainett.dto.trainee.TraineeTrainingsResponse;
 import com.rainett.service.TrainerService;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,14 +33,14 @@ public class TrainerController {
     }
 
     @GetMapping("/{username}/trainings")
-    public ResponseEntity<TrainerTrainingsResponse> getTrainerTrainings(
+    public ResponseEntity<List<TrainerTrainingResponse>> getTrainerTrainings(
             @PathVariable String username,
             @RequestParam(required = false) LocalDate from,
             @RequestParam(required = false) LocalDate to,
             @RequestParam(required = false) String traineeUsername) {
-        TrainerTrainingsResponse trainerTrainingsResponse = trainerService
+        List<TrainerTrainingResponse> trainerTrainingResponse = trainerService
                 .findTrainings(username, from, to, traineeUsername);
-        return ResponseEntity.ok(trainerTrainingsResponse);
+        return ResponseEntity.ok(trainerTrainingResponse);
     }
 
     @PostMapping
