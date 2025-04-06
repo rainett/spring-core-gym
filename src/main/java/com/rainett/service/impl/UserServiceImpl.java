@@ -1,46 +1,53 @@
 package com.rainett.service.impl;
 
+import com.rainett.dto.user.LoginRequest;
+import com.rainett.dto.user.UpdatePasswordRequest;
+import com.rainett.dto.user.UpdateUserActiveRequest;
+import com.rainett.exceptions.EntityNotFoundException;
+import com.rainett.exceptions.LoginException;
 import com.rainett.model.User;
 import com.rainett.repository.UserRepository;
 import com.rainett.service.UserService;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-@Component
-@Slf4j
+@Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private static final String NUMERIC_USERNAME_FORMATTER = "%s.%d";
-
     private final UserRepository userRepository;
 
     @Override
-    public boolean usernameRequiresUpdate(User user, UpdateUserRequest userDto) {
-        return !userDto.getFirstName().equals(user.getFirstName()) ||
-               !userDto.getLastName().equals(user.getLastName());
+    @Transactional(readOnly = true)
+    public void login(LoginRequest request) {
+        login(request.getUsername(), request.getPassword());
     }
 
     @Override
-    public String generateUsername(String firstName, String lastName) {
-        log.info("Generating unique username for {} {}", firstName, lastName);
-        String initialUsername = String.format(USERNAME_FORMATTER, firstName, lastName);
-        long totalSuffixes = userRepository.findSuffixUsernameCount(initialUsername);
-        if (totalSuffixes == 0) {
-            return initialUsername;
-        }
-        return String.format(NUMERIC_USERNAME_FORMATTER, initialUsername, totalSuffixes);
+    @Transactional
+    public void updatePassword(String username, UpdatePasswordRequest request) {
+        User user = login(username, request.getOldPassword());
+        user.setPassword(request.getNewPassword());
     }
 
     @Override
-    public String generatePassword() {
-        log.info("Generating random password");
-        return Stream.generate(() -> (char) ThreadLocalRandom.current().nextInt('a', 'z' + 1))
-                .limit(PASSWORD_LENGTH)
-                .map(Object::toString)
-                .collect(Collectors.joining());
+    @Transactional
+    public void updateStatus(String username, UpdateUserActiveRequest request) {
+        User user = getUser(username);
+        user.setIsActive(request.getIsActive());
+        user.setActiveUpdatedAt(LocalDateTime.now());
+    }
+
+    private User login(String username, String password) {
+        return userRepository.findByUsername(username)
+                .filter(user -> user.getPassword().equals(password))
+                .orElseThrow(() -> new LoginException("Invalid username or password"));
+    }
+
+    private User getUser(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "User not found for username = [" + username + "]"));
     }
 }
