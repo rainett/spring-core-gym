@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,7 +17,7 @@ public class TrainingController {
     private final TrainingService trainingService;
 
     @PostMapping
-    public ResponseEntity<Void> createTraining(@Valid CreateTrainingRequest request) {
+    public ResponseEntity<Void> createTraining(@Valid @RequestBody CreateTrainingRequest request) {
         trainingService.createTraining(request);
         return ResponseEntity.ok().build();
     }
