@@ -2,7 +2,7 @@ package com.rainett.controller;
 
 import com.rainett.dto.trainee.CreateTraineeRequest;
 import com.rainett.dto.trainee.TraineeResponse;
-import com.rainett.dto.trainee.TraineeTrainerDto;
+import com.rainett.dto.trainee.TrainerDto;
 import com.rainett.dto.trainee.UpdateTraineeRequest;
 import com.rainett.dto.trainee.UpdateTraineeTrainersRequest;
 import com.rainett.dto.user.UserCredentialsResponse;
@@ -48,9 +48,9 @@ public class TraineeController {
     }
 
     @GetMapping("/{username}/unassigned-trainers")
-    public ResponseEntity<List<TraineeTrainerDto>> getUnassignedTrainers(@PathVariable String username) {
-        List<TraineeTrainerDto> traineeTrainerDto = traineeService.findUnassignedTrainers(username);
-        return ResponseEntity.ok(traineeTrainerDto);
+    public ResponseEntity<List<TrainerDto>> getUnassignedTrainers(@PathVariable String username) {
+        List<TrainerDto> trainerDto = traineeService.findUnassignedTrainers(username);
+        return ResponseEntity.ok(trainerDto);
     }
 
     @PostMapping
@@ -68,10 +68,10 @@ public class TraineeController {
     }
 
     @PutMapping("/{username}/trainers")
-    public ResponseEntity<List<TraineeTrainerDto>> updateTrainers(
+    public ResponseEntity<List<TrainerDto>> updateTrainers(
             @PathVariable String username,
             @Valid UpdateTraineeTrainersRequest request) {
-        List<TraineeTrainerDto> trainerDto = traineeService.updateTrainers(username, request);
+        List<TrainerDto> trainerDto = traineeService.updateTrainers(username, request);
         return ResponseEntity.ok(trainerDto);
     }
 

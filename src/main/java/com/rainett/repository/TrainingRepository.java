@@ -1,10 +1,9 @@
 package com.rainett.repository;
 
 import com.rainett.model.Training;
-import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface TrainingRepository extends GenericRepository<Training> {
-    List<Training> findTraineeTrainings(FindTraineeTrainingsRequest request);
-
-    List<Training> findTrainerTrainings(FindTrainerTrainingsRequest request);
+@Repository
+public interface TrainingRepository extends JpaRepository<Training, Long> {
 }

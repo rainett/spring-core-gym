@@ -2,7 +2,7 @@ package com.rainett.service.impl;
 
 import com.rainett.dto.trainee.CreateTraineeRequest;
 import com.rainett.dto.trainee.TraineeResponse;
-import com.rainett.dto.trainee.TraineeTrainerDto;
+import com.rainett.dto.trainee.TrainerDto;
 import com.rainett.dto.trainee.TraineeTrainingsResponse;
 import com.rainett.dto.trainee.UpdateTraineeRequest;
 import com.rainett.dto.trainee.UpdateTraineeTrainersRequest;
@@ -33,9 +33,11 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     @Transactional(readOnly = true)
     public TraineeResponse findByUsername(String username) {
-        return traineeRepository.findTraineeDtoByUsername(username)
+        TraineeResponse traineeResponse = traineeRepository.findTraineeDtoByUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Trainee not found for username = [" + username + "]"));
+        traineeResponse.setTrainers(trainerRepository.findTrainersDtoForTrainee(username));
+        return traineeResponse;
     }
 
     @Override
@@ -51,7 +53,7 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TraineeTrainerDto> findUnassignedTrainers(String username) {
+    public List<TrainerDto> findUnassignedTrainers(String username) {
         return traineeRepository.findUnassignedTrainersDto(username);
     }
 
@@ -75,9 +77,9 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     @Transactional
-    public List<TraineeTrainerDto> updateTrainers(String username, UpdateTraineeTrainersRequest request) {
+    public List<TrainerDto> updateTrainers(String username, UpdateTraineeTrainersRequest request) {
         Trainee trainee = getTrainee(username);
-        List<Trainer> trainers = trainerRepository.findByUsernames(request.getTrainersUsernames());
+        List<Trainer> trainers = trainerRepository.findByUsernameIn(request.getTrainersUsernames());
         trainee.updateTrainers(trainers);
         return trainee.getTrainers().stream()
                 .map(traineeMapper::toTrainerDto)

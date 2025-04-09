@@ -2,10 +2,11 @@ package com.rainett.mapper;
 
 import com.rainett.dto.trainee.CreateTraineeRequest;
 import com.rainett.dto.trainee.TraineeResponse;
-import com.rainett.dto.trainee.TraineeTrainerDto;
+import com.rainett.dto.trainee.TrainerDto;
 import com.rainett.dto.trainee.UpdateTraineeRequest;
 import com.rainett.model.Trainee;
 import com.rainett.model.Trainer;
+import com.rainett.model.TrainingType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -19,5 +20,9 @@ public interface TraineeMapper {
 
     TraineeResponse toDto(Trainee trainee);
 
-    TraineeTrainerDto toTrainerDto(Trainer trainer);
+    TrainerDto toTrainerDto(Trainer trainer);
+
+    default String map(TrainingType trainingType) {
+        return trainingType.getName();
+    }
 }

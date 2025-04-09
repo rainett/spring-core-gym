@@ -9,6 +9,7 @@ import com.rainett.exceptions.EntityNotFoundException;
 import com.rainett.mapper.TrainerMapper;
 import com.rainett.model.Trainer;
 import com.rainett.model.TrainingType;
+import com.rainett.repository.TraineeRepository;
 import com.rainett.repository.TrainerRepository;
 import com.rainett.repository.TrainingTypeRepository;
 import com.rainett.service.TrainerService;
@@ -27,13 +28,16 @@ public class TrainerServiceImpl implements TrainerService {
     private final TrainerRepository trainerRepository;
     private final TrainerMapper trainerMapper;
     private final TrainingTypeRepository trainingTypeRepository;
+    private final TraineeRepository traineeRepository;
 
     @Override
     @Transactional(readOnly = true)
     public TrainerResponse findByUsername(String username) {
-        return trainerRepository.findTrainerDtoByUsername(username)
+        TrainerResponse trainerResponse = trainerRepository.findTrainerDtoByUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Trainer not found for username = [" + username + "]"));
+        trainerResponse.setTrainees(traineeRepository.findTraineesDtoForTrainer(username));
+        return trainerResponse;
     }
 
     @Override
