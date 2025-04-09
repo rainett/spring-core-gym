@@ -1,16 +1,13 @@
 package com.rainett.model;
 
-import com.rainett.listener.UserListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -25,7 +22,6 @@ import lombok.ToString;
 @ToString
 @Inheritance(strategy = InheritanceType.JOINED)
 @Entity
-@EntityListeners(UserListener.class)
 @Table(
         name = "users",
         uniqueConstraints =
@@ -55,13 +51,14 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime activeUpdatedAt = LocalDateTime.now();
 
-    @Transient
-    private boolean usernameRequiresUpdate = false;
-
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         User user = (User) o;
         return Objects.equals(username, user.username);
     }

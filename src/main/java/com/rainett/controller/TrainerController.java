@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,14 +28,15 @@ public class TrainerController {
     private final TrainerService trainerService;
 
     @GetMapping("/{username}")
-    public ResponseEntity<TrainerResponse> findByUsername(@PathVariable String username) {
+    public ResponseEntity<TrainerResponse> findByUsername(
+            @PathVariable("username") String username) {
         TrainerResponse trainerResponse = trainerService.findByUsername(username);
         return ResponseEntity.ok(trainerResponse);
     }
 
     @GetMapping("/{username}/trainings")
     public ResponseEntity<List<TrainerTrainingResponse>> getTrainerTrainings(
-            @PathVariable String username,
+            @PathVariable("username") String username,
             @RequestParam(required = false) LocalDate from,
             @RequestParam(required = false) LocalDate to,
             @RequestParam(required = false) String traineeUsername) {
@@ -45,15 +47,15 @@ public class TrainerController {
 
     @PostMapping
     public ResponseEntity<UserCredentialsResponse> createTrainer(
-            @Valid CreateTrainerRequest request) {
+            @Valid @RequestBody CreateTrainerRequest request) {
         UserCredentialsResponse userCredentialsResponse = trainerService.createProfile(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(userCredentialsResponse);
     }
 
     @PutMapping("/{username}")
     public ResponseEntity<TrainerResponse> updateTrainer(
-            @PathVariable String username,
-            @Valid UpdateTrainerRequest request) {
+            @PathVariable("username") String username,
+            @Valid @RequestBody UpdateTrainerRequest request) {
         TrainerResponse trainerResponse = trainerService.updateTrainer(username, request);
         return ResponseEntity.ok(trainerResponse);
     }

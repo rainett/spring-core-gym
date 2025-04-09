@@ -12,6 +12,7 @@ import com.rainett.model.TrainingType;
 import com.rainett.repository.TraineeRepository;
 import com.rainett.repository.TrainerRepository;
 import com.rainett.repository.TrainingTypeRepository;
+import com.rainett.service.CredentialService;
 import com.rainett.service.TrainerService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,17 +26,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RequiredArgsConstructor
 public class TrainerServiceImpl implements TrainerService {
+    private static final String NO_TRAINER_MESSAGE = "Trainer not found for username = [%s]";
+
     private final TrainerRepository trainerRepository;
-    private final TrainerMapper trainerMapper;
     private final TrainingTypeRepository trainingTypeRepository;
+    private final TrainerMapper trainerMapper;
     private final TraineeRepository traineeRepository;
+    private final CredentialService credentialService;
 
     @Override
     @Transactional(readOnly = true)
     public TrainerResponse findByUsername(String username) {
         TrainerResponse trainerResponse = trainerRepository.findTrainerDtoByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Trainer not found for username = [" + username + "]"));
+                .orElseThrow(() -> new ResourceNotFoundException(getNoTrainerMessage(username)));
         trainerResponse.setTrainees(traineeRepository.findTraineesDtoForTrainer(username));
         return trainerResponse;
     }
@@ -44,6 +47,9 @@ public class TrainerServiceImpl implements TrainerService {
     @Transactional(readOnly = true)
     public List<TrainerTrainingResponse> findTrainings(String username, LocalDate from,
                                                        LocalDate to, String traineeUsername) {
+        if (!trainerRepository.existsByUsername(username)) {
+            throw new ResourceNotFoundException(getNoTrainerMessage(username));
+        }
         return trainerRepository.findTrainerTrainingsDto(username, from, to, traineeUsername);
     }
 
@@ -53,6 +59,7 @@ public class TrainerServiceImpl implements TrainerService {
         Trainer trainer = trainerMapper.toEntity(request);
         TrainingType trainingType = getTrainingType(request.getSpecialization());
         trainer.setSpecialization(trainingType);
+        credentialService.createCredentials(trainer);
         trainer = trainerRepository.save(trainer);
         return new UserCredentialsResponse(trainer.getUsername(), trainer.getPassword());
     }
@@ -61,7 +68,10 @@ public class TrainerServiceImpl implements TrainerService {
     @Transactional
     public TrainerResponse updateTrainer(String username, UpdateTrainerRequest request) {
         Trainer trainer = getTrainer(username);
+        TrainingType specialization = getTrainingType(request.getSpecialization());
+        credentialService.updateCredentials(trainer, request.getFirstName(), request.getLastName());
         trainerMapper.updateEntity(trainer, request);
+        trainer.setSpecialization(specialization);
         trainer.setActiveUpdatedAt(LocalDateTime.now());
         return trainerMapper.toDto(trainer);
     }
@@ -77,5 +87,9 @@ public class TrainerServiceImpl implements TrainerService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Training type not found for name = [" + name + "]"
                 ));
+    }
+
+    private static String getNoTrainerMessage(String username) {
+        return String.format(NO_TRAINER_MESSAGE, username);
     }
 }

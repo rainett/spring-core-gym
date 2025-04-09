@@ -44,4 +44,6 @@ public interface TrainerRepository extends JpaRepository<Trainer, Long> {
            "JOIN t.trainees trainee " +
            "WHERE trainee.username = :username")
     List<TrainerDto> findTrainersDtoForTrainee(@Param("username") String traineeUsername);
+
+    boolean existsByUsername(String username);
 }

@@ -13,6 +13,6 @@ public class TrainerResponse {
     private String firstName;
     private String lastName;
     private String specialization;
-    private boolean isActive;
+    private Boolean isActive;
     private List<TraineeDto> trainees;
 }

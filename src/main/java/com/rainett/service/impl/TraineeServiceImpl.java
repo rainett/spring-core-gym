@@ -13,6 +13,7 @@ import com.rainett.model.Trainee;
 import com.rainett.model.Trainer;
 import com.rainett.repository.TraineeRepository;
 import com.rainett.repository.TrainerRepository;
+import com.rainett.service.CredentialService;
 import com.rainett.service.TraineeService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -31,6 +32,7 @@ public class TraineeServiceImpl implements TraineeService {
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
     private final TraineeMapper traineeMapper;
+    private final CredentialService credentialService;
 
     @Override
     @Transactional(readOnly = true)
@@ -48,6 +50,9 @@ public class TraineeServiceImpl implements TraineeService {
                                                         LocalDate to,
                                                         String trainerUsername,
                                                         String trainingType) {
+        if (!traineeRepository.existsByUsername(username)) {
+            throw new ResourceNotFoundException(getNoTraineeMessage(username));
+        }
         return traineeRepository.findTraineeTrainingsDto(username, from, to, trainerUsername,
                 trainingType);
     }
@@ -66,6 +71,7 @@ public class TraineeServiceImpl implements TraineeService {
     public UserCredentialsResponse createProfile(CreateTraineeRequest request) {
         Trainee trainee = traineeMapper.toEntity(request);
         trainee.setIsActive(true);
+        credentialService.createCredentials(trainee);
         trainee = traineeRepository.save(trainee);
         return new UserCredentialsResponse(trainee.getUsername(), trainee.getPassword());
     }
@@ -74,6 +80,7 @@ public class TraineeServiceImpl implements TraineeService {
     @Transactional
     public TraineeResponse updateTrainee(String username, UpdateTraineeRequest request) {
         Trainee trainee = getTrainee(username);
+        credentialService.updateCredentials(trainee, request.getFirstName(), request.getLastName());
         traineeMapper.updateEntity(trainee, request);
         trainee.setActiveUpdatedAt(LocalDateTime.now());
         return traineeMapper.toDto(trainee);
