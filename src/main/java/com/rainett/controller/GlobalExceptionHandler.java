@@ -1,5 +1,6 @@
 package com.rainett.controller;
 
+import com.rainett.exceptions.LoginException;
 import com.rainett.exceptions.ResourceNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
@@ -33,6 +34,11 @@ public class GlobalExceptionHandler {
                 .findFirst()
                 .orElse("Validation failed");
         return buildResponse(HttpStatus.BAD_REQUEST, message);
+    }
+
+    @ExceptionHandler(LoginException.class)
+    public ResponseEntity<ErrorResponse> handleLoginException(LoginException ex) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)

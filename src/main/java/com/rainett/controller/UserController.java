@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,21 +22,21 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<Void> login(@Valid LoginRequest request) {
+    public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest request) {
         userService.login(request);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{username}/password")
-    public ResponseEntity<Void> updatePassword(@PathVariable String username,
-                                               @Valid UpdatePasswordRequest request) {
+    public ResponseEntity<Void> updatePassword(@PathVariable("username") String username,
+                                               @Valid @RequestBody UpdatePasswordRequest request) {
         userService.updatePassword(username, request);
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{username}/status")
-    public ResponseEntity<Void> updateStatus(@PathVariable String username,
-                                              @Valid UpdateUserActiveRequest request) {
+    public ResponseEntity<Void> updateStatus(@PathVariable("username") String username,
+                                             @Valid @RequestBody UpdateUserActiveRequest request) {
         userService.updateStatus(username, request);
         return ResponseEntity.ok().build();
     }
