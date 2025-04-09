@@ -1,18 +1,15 @@
 package com.rainett.service.impl;
 
 import com.rainett.dto.training.CreateTrainingRequest;
-import com.rainett.exceptions.EntityNotFoundException;
+import com.rainett.exceptions.ResourceNotFoundException;
 import com.rainett.mapper.TrainingMapper;
 import com.rainett.model.Trainee;
 import com.rainett.model.Trainer;
 import com.rainett.model.Training;
-import com.rainett.model.TrainingType;
 import com.rainett.repository.TraineeRepository;
 import com.rainett.repository.TrainerRepository;
 import com.rainett.repository.TrainingRepository;
-import com.rainett.repository.TrainingTypeRepository;
 import com.rainett.service.TrainingService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -41,13 +38,13 @@ public class TrainingServiceImpl implements TrainingService {
 
     private Trainee getTrainee(String traineeUsername) {
         return traineeRepository.findByUsername(traineeUsername)
-                .orElseThrow(() -> new EntityNotFoundException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Trainee not found for username = [" + traineeUsername + "]"));
     }
 
     private Trainer getTrainer(String trainerUsername) {
         return trainerRepository.findByUsername(trainerUsername)
-                .orElseThrow(() -> new EntityNotFoundException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Trainer not found for username = [" + trainerUsername + "]"));
     }
 }

@@ -5,7 +5,7 @@ import com.rainett.dto.trainer.TrainerResponse;
 import com.rainett.dto.trainer.TrainerTrainingResponse;
 import com.rainett.dto.trainer.UpdateTrainerRequest;
 import com.rainett.dto.user.UserCredentialsResponse;
-import com.rainett.exceptions.EntityNotFoundException;
+import com.rainett.exceptions.ResourceNotFoundException;
 import com.rainett.mapper.TrainerMapper;
 import com.rainett.model.Trainer;
 import com.rainett.model.TrainingType;
@@ -34,7 +34,7 @@ public class TrainerServiceImpl implements TrainerService {
     @Transactional(readOnly = true)
     public TrainerResponse findByUsername(String username) {
         TrainerResponse trainerResponse = trainerRepository.findTrainerDtoByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Trainer not found for username = [" + username + "]"));
         trainerResponse.setTrainees(traineeRepository.findTraineesDtoForTrainer(username));
         return trainerResponse;
@@ -68,13 +68,13 @@ public class TrainerServiceImpl implements TrainerService {
 
     private Trainer getTrainer(String username) {
         return trainerRepository.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Trainer not found for username = [" + username + "]"));
     }
 
     private TrainingType getTrainingType(String name) {
         return trainingTypeRepository.findByName(name)
-                .orElseThrow(() -> new EntityNotFoundException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Training type not found for name = [" + name + "]"
                 ));
     }

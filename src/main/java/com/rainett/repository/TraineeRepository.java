@@ -1,10 +1,9 @@
 package com.rainett.repository;
 
 import com.rainett.dto.trainee.TraineeResponse;
-import com.rainett.dto.trainee.TrainerDto;
 import com.rainett.dto.trainee.TraineeTrainingsResponse;
+import com.rainett.dto.trainee.TrainerDto;
 import com.rainett.dto.trainer.TraineeDto;
-import com.rainett.dto.trainer.TrainerResponse;
 import com.rainett.model.Trainee;
 import java.time.LocalDate;
 import java.util.List;
@@ -58,4 +57,6 @@ public interface TraineeRepository extends JpaRepository<Trainee, Long> {
            "JOIN t.trainers trainer " +
            "WHERE trainer.username = :username")
     List<TraineeDto> findTraineesDtoForTrainer(@Param("username") String trainerUsername);
+
+    boolean existsByUsername(String username);
 }

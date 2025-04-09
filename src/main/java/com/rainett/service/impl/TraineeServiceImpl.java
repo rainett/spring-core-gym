@@ -7,7 +7,7 @@ import com.rainett.dto.trainee.TraineeTrainingsResponse;
 import com.rainett.dto.trainee.UpdateTraineeRequest;
 import com.rainett.dto.trainee.UpdateTraineeTrainersRequest;
 import com.rainett.dto.user.UserCredentialsResponse;
-import com.rainett.exceptions.EntityNotFoundException;
+import com.rainett.exceptions.ResourceNotFoundException;
 import com.rainett.mapper.TraineeMapper;
 import com.rainett.model.Trainee;
 import com.rainett.model.Trainer;
@@ -26,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RequiredArgsConstructor
 public class TraineeServiceImpl implements TraineeService {
+    private static final String NO_TRAINEE_MESSAGE = "Trainee not found for username = [%s]";
+
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
     private final TraineeMapper traineeMapper;
@@ -34,8 +36,7 @@ public class TraineeServiceImpl implements TraineeService {
     @Transactional(readOnly = true)
     public TraineeResponse findByUsername(String username) {
         TraineeResponse traineeResponse = traineeRepository.findTraineeDtoByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Trainee not found for username = [" + username + "]"));
+                .orElseThrow(() -> new ResourceNotFoundException(getNoTraineeMessage(username)));
         traineeResponse.setTrainers(trainerRepository.findTrainersDtoForTrainee(username));
         return traineeResponse;
     }
@@ -54,6 +55,9 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     @Transactional(readOnly = true)
     public List<TrainerDto> findUnassignedTrainers(String username) {
+        if (!traineeRepository.existsByUsername(username)) {
+            throw new ResourceNotFoundException(getNoTraineeMessage(username));
+        }
         return traineeRepository.findUnassignedTrainersDto(username);
     }
 
@@ -96,9 +100,12 @@ public class TraineeServiceImpl implements TraineeService {
         traineeRepository.delete(trainee);
     }
 
+    private static String getNoTraineeMessage(String username) {
+        return String.format(NO_TRAINEE_MESSAGE, username);
+    }
+
     private Trainee getTrainee(String username) {
         return traineeRepository.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Trainee not found for username = [" + username + "]"));
+                .orElseThrow(() -> new ResourceNotFoundException(getNoTraineeMessage(username)));
     }
 }

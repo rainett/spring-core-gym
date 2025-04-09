@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,14 +31,15 @@ public class TraineeController {
     private final TraineeService traineeService;
 
     @GetMapping("/{username}")
-    public ResponseEntity<TraineeResponse> getTraineeByUsername(@PathVariable String username) {
+    public ResponseEntity<TraineeResponse> getTraineeByUsername(
+            @PathVariable("username") String username) {
         TraineeResponse traineeResponse = traineeService.findByUsername(username);
         return ResponseEntity.ok(traineeResponse);
     }
 
     @GetMapping("/{username}/trainings")
     public ResponseEntity<List<TraineeTrainingsResponse>> getTraineeTrainings(
-            @PathVariable String username,
+            @PathVariable("username") String username,
             @RequestParam(required = false) LocalDate from,
             @RequestParam(required = false) LocalDate to,
             @RequestParam(required = false) String trainerUsername,
@@ -48,35 +50,37 @@ public class TraineeController {
     }
 
     @GetMapping("/{username}/unassigned-trainers")
-    public ResponseEntity<List<TrainerDto>> getUnassignedTrainers(@PathVariable String username) {
+    public ResponseEntity<List<TrainerDto>> getUnassignedTrainers(
+            @PathVariable("username") String username) {
         List<TrainerDto> trainerDto = traineeService.findUnassignedTrainers(username);
         return ResponseEntity.ok(trainerDto);
     }
 
     @PostMapping
-    public ResponseEntity<UserCredentialsResponse> createTrainee(@Valid CreateTraineeRequest request) {
+    public ResponseEntity<UserCredentialsResponse> createTrainee(
+            @Valid @RequestBody CreateTraineeRequest request) {
         UserCredentialsResponse userCredentialsResponse = traineeService.createProfile(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(userCredentialsResponse);
     }
 
     @PutMapping("/{username}")
     public ResponseEntity<TraineeResponse> updateTrainee(
-            @PathVariable String username,
-            @Valid UpdateTraineeRequest request) {
+            @PathVariable("username") String username,
+            @Valid @RequestBody UpdateTraineeRequest request) {
         TraineeResponse traineeResponse = traineeService.updateTrainee(username, request);
         return ResponseEntity.ok(traineeResponse);
     }
 
     @PutMapping("/{username}/trainers")
     public ResponseEntity<List<TrainerDto>> updateTrainers(
-            @PathVariable String username,
-            @Valid UpdateTraineeTrainersRequest request) {
+            @PathVariable("username") String username,
+            @Valid @RequestBody UpdateTraineeTrainersRequest request) {
         List<TrainerDto> trainerDto = traineeService.updateTrainers(username, request);
         return ResponseEntity.ok(trainerDto);
     }
 
     @DeleteMapping("/{username}")
-    public ResponseEntity<Void> deleteProfile(@PathVariable String username) {
+    public ResponseEntity<Void> deleteProfile(@PathVariable("username") String username) {
         traineeService.deleteProfile(username);
         return ResponseEntity.noContent().build();
     }

@@ -3,7 +3,7 @@ package com.rainett.service.impl;
 import com.rainett.dto.user.LoginRequest;
 import com.rainett.dto.user.UpdatePasswordRequest;
 import com.rainett.dto.user.UpdateUserActiveRequest;
-import com.rainett.exceptions.EntityNotFoundException;
+import com.rainett.exceptions.ResourceNotFoundException;
 import com.rainett.exceptions.LoginException;
 import com.rainett.model.User;
 import com.rainett.repository.UserRepository;
@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
 
     private User getUser(String username) {
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "User not found for username = [" + username + "]"));
     }
 }
