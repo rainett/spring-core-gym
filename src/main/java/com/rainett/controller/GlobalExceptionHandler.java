@@ -1,11 +1,12 @@
 package com.rainett.controller;
 
+import com.rainett.annotations.Loggable;
+import com.rainett.dto.ErrorResponse;
 import com.rainett.exceptions.LoginException;
 import com.rainett.exceptions.ResourceNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
-@Slf4j
+@Loggable
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -48,7 +49,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex) {
-        log.warn("Database constraint violated", ex);
         return buildResponse(HttpStatus.CONFLICT, "Database constraint violated");
     }
 
@@ -69,13 +69,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
-        log.warn("Illegal argument", ex);
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        log.error("An unexpected error occurred", ex);
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
     }
 
@@ -88,11 +86,4 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(status).body(body);
     }
-
-    public record ErrorResponse(
-            String timestamp,
-            int status,
-            String error,
-            String message
-    ) {}
 }

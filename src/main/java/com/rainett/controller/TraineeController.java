@@ -1,5 +1,6 @@
 package com.rainett.controller;
 
+import com.rainett.annotations.Loggable;
 import com.rainett.dto.trainee.CreateTraineeRequest;
 import com.rainett.dto.trainee.TraineeResponse;
 import com.rainett.dto.trainee.TrainerDto;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Loggable
 @RestController
 @RequestMapping("/api/trainees")
 @RequiredArgsConstructor
