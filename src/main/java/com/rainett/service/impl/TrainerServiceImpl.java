@@ -17,6 +17,7 @@ import com.rainett.service.TrainerService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -29,16 +30,16 @@ public class TrainerServiceImpl implements TrainerService {
     private static final String NO_TRAINER_MESSAGE = "Trainer not found for username = [%s]";
 
     private final TrainerRepository trainerRepository;
+    private final TraineeRepository traineeRepository;
     private final TrainingTypeRepository trainingTypeRepository;
     private final TrainerMapper trainerMapper;
-    private final TraineeRepository traineeRepository;
     private final CredentialService credentialService;
 
     @Override
     @Transactional(readOnly = true)
     public TrainerResponse findByUsername(String username) {
         TrainerResponse trainerResponse = trainerRepository.findTrainerDtoByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException(getNoTrainerMessage(username)));
+                .orElseThrow(getNoTraineeExceptionSupplier(username));
         trainerResponse.setTrainees(traineeRepository.findTraineesDtoForTrainer(username));
         return trainerResponse;
     }
@@ -48,7 +49,7 @@ public class TrainerServiceImpl implements TrainerService {
     public List<TrainerTrainingResponse> findTrainings(String username, LocalDate from,
                                                        LocalDate to, String traineeUsername) {
         if (!trainerRepository.existsByUsername(username)) {
-            throw new ResourceNotFoundException(getNoTrainerMessage(username));
+            throw getNoTraineeExceptionSupplier(username).get();
         }
         return trainerRepository.findTrainerTrainingsDto(username, from, to, traineeUsername);
     }
@@ -77,8 +78,7 @@ public class TrainerServiceImpl implements TrainerService {
 
     private Trainer getTrainer(String username) {
         return trainerRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Trainer not found for username = [" + username + "]"));
+                .orElseThrow(getNoTraineeExceptionSupplier(username));
     }
 
     private TrainingType getTrainingType(String name) {
@@ -88,7 +88,8 @@ public class TrainerServiceImpl implements TrainerService {
                 ));
     }
 
-    private static String getNoTrainerMessage(String username) {
-        return String.format(NO_TRAINER_MESSAGE, username);
+    private Supplier<ResourceNotFoundException> getNoTraineeExceptionSupplier(String username) {
+        String message = String.format(NO_TRAINER_MESSAGE, username);
+        return () -> new ResourceNotFoundException(message);
     }
 }
