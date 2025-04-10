@@ -49,12 +49,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex) {
-        return buildResponse(HttpStatus.CONFLICT, "Database constraint violated");
+        return buildResponse(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
-        return buildResponse(HttpStatus.METHOD_NOT_ALLOWED, "HTTP method not allowed");
+        return buildResponse(HttpStatus.METHOD_NOT_ALLOWED, ex.getMessage());
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)
@@ -64,7 +64,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
-        return buildResponse(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Unsupported media type");
+        return buildResponse(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ex.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -74,7 +74,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
     }
 
     private ResponseEntity<ErrorResponse> buildResponse(HttpStatus status, String message) {
