@@ -1,5 +1,7 @@
 package com.rainett.controller;
 
+import com.rainett.annotations.Authenticated;
+import com.rainett.annotations.Loggable;
 import com.rainett.dto.training.CreateTrainingRequest;
 import com.rainett.service.TrainingService;
 import jakarta.validation.Valid;
@@ -10,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Loggable
+@Authenticated
 @RestController
 @RequestMapping("/api/trainings")
 @RequiredArgsConstructor

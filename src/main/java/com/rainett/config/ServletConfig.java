@@ -28,7 +28,7 @@ public class ServletConfig extends AbstractAnnotationConfigDispatcherServletInit
     }
 
     private void setUpFilters(ServletContext servletContext) {
-        String[] filterNames = {"transactionLoggingFilter"};
+        String[] filterNames = {"transactionLoggingFilter", "authenticationFilter"};
         for (String filterName : filterNames) {
             addFilter(servletContext, filterName);
         }

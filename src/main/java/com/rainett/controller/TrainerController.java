@@ -1,5 +1,7 @@
 package com.rainett.controller;
 
+import com.rainett.annotations.Authenticated;
+import com.rainett.annotations.Loggable;
 import com.rainett.dto.trainer.CreateTrainerRequest;
 import com.rainett.dto.trainer.TrainerResponse;
 import com.rainett.dto.trainer.TrainerTrainingResponse;
@@ -21,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Loggable
+@Authenticated
 @RestController
 @RequestMapping("/api/trainers")
 @RequiredArgsConstructor
@@ -46,6 +50,7 @@ public class TrainerController {
     }
 
     @PostMapping
+    @Authenticated(ignore = true)
     public ResponseEntity<UserCredentialsResponse> createTrainer(
             @Valid @RequestBody CreateTrainerRequest request) {
         UserCredentialsResponse userCredentialsResponse = trainerService.createProfile(request);

@@ -1,13 +1,14 @@
 package com.rainett.controller;
 
+import com.rainett.annotations.Authenticated;
 import com.rainett.annotations.Loggable;
 import com.rainett.dto.trainee.CreateTraineeRequest;
 import com.rainett.dto.trainee.TraineeResponse;
+import com.rainett.dto.trainee.TraineeTrainingsResponse;
 import com.rainett.dto.trainee.TrainerDto;
 import com.rainett.dto.trainee.UpdateTraineeRequest;
 import com.rainett.dto.trainee.UpdateTraineeTrainersRequest;
 import com.rainett.dto.user.UserCredentialsResponse;
-import com.rainett.dto.trainee.TraineeTrainingsResponse;
 import com.rainett.service.TraineeService;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Loggable
+@Authenticated
 @RestController
 @RequestMapping("/api/trainees")
 @RequiredArgsConstructor
@@ -59,6 +61,7 @@ public class TraineeController {
     }
 
     @PostMapping
+    @Authenticated(ignore = true)
     public ResponseEntity<UserCredentialsResponse> createTrainee(
             @Valid @RequestBody CreateTraineeRequest request) {
         UserCredentialsResponse userCredentialsResponse = traineeService.createProfile(request);

@@ -1,5 +1,7 @@
 package com.rainett.controller;
 
+import com.rainett.annotations.Authenticated;
+import com.rainett.annotations.Loggable;
 import com.rainett.dto.user.LoginRequest;
 import com.rainett.dto.user.UpdatePasswordRequest;
 import com.rainett.dto.user.UpdateUserActiveRequest;
@@ -15,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Loggable
+@Authenticated
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
