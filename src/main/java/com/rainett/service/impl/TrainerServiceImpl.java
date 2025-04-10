@@ -69,7 +69,6 @@ public class TrainerServiceImpl implements TrainerService {
     public TrainerResponse updateTrainer(String username, UpdateTrainerRequest request) {
         Trainer trainer = getTrainer(username);
         TrainingType specialization = getTrainingType(request.getSpecialization());
-        credentialService.updateCredentials(trainer, request.getFirstName(), request.getLastName());
         trainerMapper.updateEntity(trainer, request);
         trainer.setSpecialization(specialization);
         trainer.setActiveUpdatedAt(LocalDateTime.now());

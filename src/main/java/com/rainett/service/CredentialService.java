@@ -4,6 +4,4 @@ import com.rainett.model.User;
 
 public interface CredentialService {
     void createCredentials(User user);
-
-    void updateCredentials(User user, String firstName, String lastName);
 }

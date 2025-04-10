@@ -80,7 +80,6 @@ public class TraineeServiceImpl implements TraineeService {
     @Transactional
     public TraineeResponse updateTrainee(String username, UpdateTraineeRequest request) {
         Trainee trainee = getTrainee(username);
-        credentialService.updateCredentials(trainee, request.getFirstName(), request.getLastName());
         traineeMapper.updateEntity(trainee, request);
         trainee.setActiveUpdatedAt(LocalDateTime.now());
         return traineeMapper.toDto(trainee);

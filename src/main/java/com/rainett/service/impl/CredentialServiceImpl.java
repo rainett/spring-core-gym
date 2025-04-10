@@ -25,15 +25,6 @@ public class CredentialServiceImpl implements CredentialService {
         user.setPassword(password);
     }
 
-    @Override
-    public void updateCredentials(User user, String firstName, String lastName) {
-        if (user.getFirstName().equals(firstName) && user.getLastName().equals(lastName)) {
-            return;
-        }
-        String username = generateUsername(firstName, lastName);
-        user.setUsername(username);
-    }
-
     private String generateUsername(String firstName, String lastName) {
         String initialUsername = String.format(USERNAME_FORMATTER, firstName, lastName);
         long totalSuffixes = userRepository.findSuffixUsernameCount(initialUsername);
