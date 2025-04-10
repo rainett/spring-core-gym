@@ -2,10 +2,17 @@ package com.rainett.controller;
 
 import com.rainett.annotations.Authenticated;
 import com.rainett.annotations.Loggable;
+import com.rainett.dto.ErrorResponse;
 import com.rainett.dto.user.LoginRequest;
 import com.rainett.dto.user.UpdatePasswordRequest;
 import com.rainett.dto.user.UpdateUserActiveRequest;
 import com.rainett.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "User API", description = "Endpoints for managing users")
 @Loggable
 @Authenticated
 @RestController
@@ -25,6 +33,22 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
     private final UserService userService;
 
+    @Operation(
+            summary = "User Login",
+            description = "Authenticates a user, sends an error if authentication fails",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Login successful"),
+                    @ApiResponse(responseCode = "400", description = "Invalid auth header",
+                            content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                                    mediaType = "application/json")),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized",
+                            content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                                    mediaType = "application/json"))
+            },
+            security = {
+                    @SecurityRequirement(name = "basicAuth") // to implement
+            }
+    )
     @PostMapping("/login")
     public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest request) {
         userService.login(request);
