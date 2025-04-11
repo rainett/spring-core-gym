@@ -1,23 +1,23 @@
 package com.rainett.service.impl;
 
-import com.rainett.annotations.Authenticated;
-import com.rainett.dto.trainer.CreateTrainerProfileRequest;
+import com.rainett.dto.trainer.CreateTrainerRequest;
+import com.rainett.dto.trainer.TrainerResponse;
+import com.rainett.dto.trainer.TrainerTrainingResponse;
 import com.rainett.dto.trainer.UpdateTrainerRequest;
-import com.rainett.dto.user.UpdatePasswordRequest;
-import com.rainett.dto.user.UpdateUserActiveRequest;
-import com.rainett.dto.user.UsernameRequest;
-import com.rainett.exceptions.EntityNotFoundException;
+import com.rainett.dto.user.UserCredentialsResponse;
+import com.rainett.exceptions.ResourceNotFoundException;
 import com.rainett.mapper.TrainerMapper;
-import com.rainett.model.Trainee;
 import com.rainett.model.Trainer;
 import com.rainett.model.TrainingType;
+import com.rainett.repository.TraineeRepository;
 import com.rainett.repository.TrainerRepository;
 import com.rainett.repository.TrainingTypeRepository;
+import com.rainett.service.CredentialService;
 import com.rainett.service.TrainerService;
-import com.rainett.service.UserService;
-import jakarta.validation.Valid;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -27,95 +27,69 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RequiredArgsConstructor
 public class TrainerServiceImpl implements TrainerService {
+    private static final String NO_TRAINER_MESSAGE = "Trainer not found for username = [%s]";
+
     private final TrainerRepository trainerRepository;
-    private final TrainerMapper trainerMapper;
+    private final TraineeRepository traineeRepository;
     private final TrainingTypeRepository trainingTypeRepository;
-    private final UserService userService;
+    private final TrainerMapper trainerMapper;
+    private final CredentialService credentialService;
+
+    @Override
+    @Transactional(readOnly = true)
+    public TrainerResponse findByUsername(String username) {
+        TrainerResponse trainerResponse = trainerRepository.findTrainerDtoByUsername(username)
+                .orElseThrow(getNoTraineeExceptionSupplier(username));
+        trainerResponse.setTrainees(traineeRepository.findTraineesDtoForTrainer(username));
+        return trainerResponse;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TrainerTrainingResponse> findTrainings(String username, LocalDate from,
+                                                       LocalDate to, String traineeUsername) {
+        if (!trainerRepository.existsByUsername(username)) {
+            throw getNoTraineeExceptionSupplier(username).get();
+        }
+        return trainerRepository.findTrainerTrainingsDto(username, from, to, traineeUsername);
+    }
 
     @Override
     @Transactional
-    public Trainer createProfile(@Valid CreateTrainerProfileRequest request) {
-        log.info("Creating trainer profile for request {}", request);
+    public UserCredentialsResponse createProfile(CreateTrainerRequest request) {
         Trainer trainer = trainerMapper.toEntity(request);
         TrainingType trainingType = getTrainingType(request.getSpecialization());
         trainer.setSpecialization(trainingType);
-        String username = userService
-                .generateUsername(request.getFirstName(), request.getLastName());
-        String password = userService.generatePassword();
-        trainer.setUsername(username);
-        trainer.setPassword(password);
-        return trainerRepository.save(trainer);
+        credentialService.createCredentials(trainer);
+        trainer = trainerRepository.save(trainer);
+        return new UserCredentialsResponse(trainer.getUsername(), trainer.getPassword());
     }
 
     @Override
-    @Authenticated
-    @Transactional(readOnly = true)
-    public Trainer findByUsername(@Valid UsernameRequest request) {
-        log.info("Finding trainer profile for request {}", request);
-        return getTrainer(request.getUsername());
-    }
-
-    @Override
-    @Authenticated
     @Transactional
-    public Trainer updatePassword(@Valid UpdatePasswordRequest request) {
-        log.info("Updating trainer password for request {}", request);
-        Trainer trainer = getTrainer(request.getUsername());
-        trainer.setPassword(request.getNewPassword());
-        return trainer;
-    }
-
-    @Override
-    @Authenticated
-    @Transactional
-    public Trainer updateTrainer(@Valid UpdateTrainerRequest request) {
-        log.info("Updating trainer profile for request {}", request);
-        Trainer trainer = getTrainer(request.getUsername());
+    public TrainerResponse updateTrainer(String username, UpdateTrainerRequest request) {
+        Trainer trainer = getTrainer(username);
+        TrainingType specialization = getTrainingType(request.getSpecialization());
         trainerMapper.updateEntity(trainer, request);
-        if (userService.usernameRequiresUpdate(trainer, request)) {
-            String username = userService
-                    .generateUsername(request.getFirstName(), request.getLastName());
-            trainer.setUsername(username);
-        }
-        return trainer;
-    }
-
-    @Override
-    @Authenticated
-    @Transactional
-    public Trainer setActiveStatus(@Valid UpdateUserActiveRequest request) {
-        log.info("Updating trainer active status for request {}", request);
-        Trainer trainer = getTrainer(request.getUsername());
-        trainer.setIsActive(request.isActive());
+        trainer.setSpecialization(specialization);
         trainer.setActiveUpdatedAt(LocalDateTime.now());
-        return trainer;
-    }
-
-    @Override
-    @Authenticated
-    @Transactional(readOnly = true)
-    public List<Trainer> getTrainersWithoutTraineeByUsername(@Valid UsernameRequest request) {
-        log.info("Finding trainers without trainee for request {}", request);
-        return trainerRepository.findWithoutTraineeByUsername(request.getUsername());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<Trainee> getTraineesByTrainerUsername(String trainerUsername) {
-        log.info("Finding trainees by trainer username {}", trainerUsername);
-        return getTrainer(trainerUsername).getTrainees().stream().toList();
+        return trainerMapper.toDto(trainer);
     }
 
     private Trainer getTrainer(String username) {
         return trainerRepository.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Trainer not found for username = [" + username + "]"));
+                .orElseThrow(getNoTraineeExceptionSupplier(username));
     }
 
     private TrainingType getTrainingType(String name) {
         return trainingTypeRepository.findByName(name)
-                .orElseThrow(() -> new EntityNotFoundException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Training type not found for name = [" + name + "]"
                 ));
+    }
+
+    private Supplier<ResourceNotFoundException> getNoTraineeExceptionSupplier(String username) {
+        String message = String.format(NO_TRAINER_MESSAGE, username);
+        return () -> new ResourceNotFoundException(message);
     }
 }

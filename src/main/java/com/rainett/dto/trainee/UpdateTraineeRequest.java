@@ -1,13 +1,27 @@
 package com.rainett.dto.trainee;
 
-import com.rainett.dto.user.UpdateUserRequest;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class UpdateTraineeRequest extends UpdateUserRequest {
+public class UpdateTraineeRequest {
+    @NotBlank
+    @Size(max = 50)
+    @Pattern(regexp = "^[A-Za-z]+(?:[\\s'-][A-Za-z]+)*$")
+    private String firstName;
+
+    @NotBlank
+    @Size(max = 50)
+    @Pattern(regexp = "^[A-Za-z]+(?:[\\s'-][A-Za-z]+)*$")
+    private String lastName;
+
+    @NotNull
+    private Boolean isActive;
+
     private LocalDate dateOfBirth;
     private String address;
 }

@@ -1,21 +1,21 @@
 package com.rainett.service.impl;
 
-import com.rainett.annotations.Authenticated;
-import com.rainett.dto.trainee.CreateTraineeProfileRequest;
-import com.rainett.dto.user.UpdateUserActiveRequest;
-import com.rainett.dto.user.UsernameRequest;
-import com.rainett.dto.user.UpdatePasswordRequest;
+import com.rainett.dto.trainee.CreateTraineeRequest;
+import com.rainett.dto.trainee.TraineeResponse;
+import com.rainett.dto.trainee.TrainerDto;
+import com.rainett.dto.trainee.TraineeTrainingsResponse;
 import com.rainett.dto.trainee.UpdateTraineeRequest;
 import com.rainett.dto.trainee.UpdateTraineeTrainersRequest;
-import com.rainett.exceptions.EntityNotFoundException;
+import com.rainett.dto.user.UserCredentialsResponse;
+import com.rainett.exceptions.ResourceNotFoundException;
 import com.rainett.mapper.TraineeMapper;
 import com.rainett.model.Trainee;
 import com.rainett.model.Trainer;
 import com.rainett.repository.TraineeRepository;
 import com.rainett.repository.TrainerRepository;
+import com.rainett.service.CredentialService;
 import com.rainett.service.TraineeService;
-import com.rainett.service.UserService;
-import jakarta.validation.Valid;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -27,95 +27,91 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RequiredArgsConstructor
 public class TraineeServiceImpl implements TraineeService {
+    private static final String NO_TRAINEE_MESSAGE = "Trainee not found for username = [%s]";
+
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
     private final TraineeMapper traineeMapper;
-    private final UserService userService;
+    private final CredentialService credentialService;
+
+    @Override
+    @Transactional(readOnly = true)
+    public TraineeResponse findByUsername(String username) {
+        TraineeResponse traineeResponse = traineeRepository.findTraineeDtoByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException(getNoTraineeMessage(username)));
+        traineeResponse.setTrainers(trainerRepository.findTrainersDtoForTrainee(username));
+        return traineeResponse;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TraineeTrainingsResponse> findTrainings(String username,
+                                                        LocalDate from,
+                                                        LocalDate to,
+                                                        String trainerUsername,
+                                                        String trainingType) {
+        if (!traineeRepository.existsByUsername(username)) {
+            throw new ResourceNotFoundException(getNoTraineeMessage(username));
+        }
+        return traineeRepository.findTraineeTrainingsDto(username, from, to, trainerUsername,
+                trainingType);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TrainerDto> findUnassignedTrainers(String username) {
+        if (!traineeRepository.existsByUsername(username)) {
+            throw new ResourceNotFoundException(getNoTraineeMessage(username));
+        }
+        return traineeRepository.findUnassignedTrainersDto(username);
+    }
 
     @Override
     @Transactional
-    public Trainee createProfile(@Valid CreateTraineeProfileRequest request) {
-        log.info("Creating trainee profile for request {}", request);
+    public UserCredentialsResponse createProfile(CreateTraineeRequest request) {
         Trainee trainee = traineeMapper.toEntity(request);
         trainee.setIsActive(true);
-        String username = userService
-                .generateUsername(request.getFirstName(), request.getLastName());
-        String password = userService.generatePassword();
-        trainee.setUsername(username);
-        trainee.setPassword(password);
-        return traineeRepository.save(trainee);
+        credentialService.createCredentials(trainee);
+        trainee = traineeRepository.save(trainee);
+        return new UserCredentialsResponse(trainee.getUsername(), trainee.getPassword());
     }
 
     @Override
-    @Authenticated
-    @Transactional(readOnly = true)
-    public Trainee findByUsername(@Valid UsernameRequest request) {
-        log.info("Finding trainee profile for request {}", request);
-        return getTrainee(request.getUsername());
-    }
-
-    @Override
-    @Authenticated
     @Transactional
-    public Trainee updatePassword(@Valid UpdatePasswordRequest request) {
-        log.info("Updating trainee password for request {}", request);
-        Trainee trainee = getTrainee(request.getUsername());
-        trainee.setPassword(request.getNewPassword());
-        return trainee;
-    }
-
-    @Override
-    @Authenticated
-    @Transactional
-    public Trainee updateTrainee(@Valid UpdateTraineeRequest request) {
-        log.info("Updating trainee profile for request {}", request);
-        Trainee trainee = getTrainee(request.getUsername());
-        if (userService.usernameRequiresUpdate(trainee, request)) {
-            traineeMapper.updateEntity(trainee, request);
-            String username = userService
-                    .generateUsername(request.getFirstName(), request.getLastName());
-            trainee.setUsername(username);
-        }
-        return trainee;
-    }
-
-    @Override
-    @Authenticated
-    @Transactional
-    public Trainee setActiveStatus(@Valid UpdateUserActiveRequest request) {
-        log.info("Updating trainee active status for request {}", request);
-        Trainee trainee = getTrainee(request.getUsername());
-        trainee.setIsActive(request.isActive());
+    public TraineeResponse updateTrainee(String username, UpdateTraineeRequest request) {
+        Trainee trainee = getTrainee(username);
+        traineeMapper.updateEntity(trainee, request);
         trainee.setActiveUpdatedAt(LocalDateTime.now());
-        return trainee;
+        return traineeMapper.toDto(trainee);
     }
 
     @Override
-    @Authenticated
     @Transactional
-    public void deleteProfile(@Valid UsernameRequest request) {
-        log.info("Deleting trainee profile for request {}", request);
-        Trainee trainee = getTrainee(request.getUsername());
+    public List<TrainerDto> updateTrainers(String username, UpdateTraineeTrainersRequest request) {
+        Trainee trainee = getTrainee(username);
+        List<Trainer> trainers = trainerRepository.findByUsernameIn(request.getTrainersUsernames());
+        trainee.updateTrainers(trainers);
+        return trainee.getTrainers().stream()
+                .map(traineeMapper::toTrainerDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public void deleteProfile(String username) {
+        Trainee trainee = getTrainee(username);
         for (Trainer trainer : trainee.getTrainers()) {
             trainer.getTrainees().remove(trainee);
         }
         traineeRepository.delete(trainee);
     }
 
-    @Override
-    @Authenticated
-    @Transactional
-    public Trainee updateTrainers(@Valid UpdateTraineeTrainersRequest request) {
-        log.info("Updating trainee trainers for request {}", request);
-        Trainee trainee = getTrainee(request.getUsername());
-        List<Trainer> trainers = trainerRepository.findByUsernames(request.getTrainersUsernames());
-        trainee.updateTrainers(trainers);
-        return trainee;
+    private static String getNoTraineeMessage(String username) {
+        return String.format(NO_TRAINEE_MESSAGE, username);
     }
 
     private Trainee getTrainee(String username) {
         return traineeRepository.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Trainee not found for username = [" + username + "]"));
+                .orElseThrow(() -> new ResourceNotFoundException(getNoTraineeMessage(username)));
     }
 }
