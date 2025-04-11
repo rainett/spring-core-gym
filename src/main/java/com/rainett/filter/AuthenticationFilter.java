@@ -1,5 +1,6 @@
 package com.rainett.filter;
 
+import com.rainett.dto.AuthResult;
 import com.rainett.exceptions.LoginException;
 import com.rainett.service.AuthenticationService;
 import jakarta.servlet.FilterChain;
@@ -24,35 +25,43 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        IllegalArgumentException errorResponse = tryAuthenticate(request);
-        request.setAttribute(AUTHORIZATION_ATTRIBUTE, errorResponse);
+        String header = request.getHeader(AUTHORIZATION_HEADER);
+        AuthResult authResult;
+        if (header == null || header.isEmpty()) {
+            authResult = new AuthResult(AuthResult.Status.INVALID_HEADER,
+                    "Authorization header not found");
+        } else if (!header.startsWith(BASIC_PREFIX)) {
+            authResult = new AuthResult(AuthResult.Status.INVALID_HEADER,
+                    "Authorization header must start with '" + BASIC_PREFIX + "'");
+        } else {
+            authResult = authenticate(header);
+        }
+
+
+        request.setAttribute(AUTHORIZATION_ATTRIBUTE, authResult);
         filterChain.doFilter(request, response);
     }
 
-    private IllegalArgumentException tryAuthenticate(HttpServletRequest request) {
+    private AuthResult authenticate(String header) {
+        String[] credentials;
         try {
-            authenticate(request);
+            credentials = decodeCredentialsFromHeader(header);
         } catch (IllegalArgumentException ex) {
-            return ex;
+            return new AuthResult(AuthResult.Status.INVALID_HEADER, ex.getMessage());
         }
-        return null;
-    }
-
-    private void authenticate(HttpServletRequest request) {
-        String header = request.getHeader(AUTHORIZATION_HEADER);
-        if (header == null || !header.startsWith(BASIC_PREFIX)) {
-            throw new IllegalArgumentException("Authorization header not found or invalid, " +
-                                               "expected " + BASIC_PREFIX);
-        }
-        String[] credentials = decodeCredentialsFromHeader(header);
         String username = credentials[0];
         String password = credentials[1];
-        authenticate(username, password);
+        return authenticate(username, password);
     }
 
     private static String[] decodeCredentialsFromHeader(String header) {
         String base64Credentials = header.substring(BASIC_PREFIX.length()).trim();
-        byte[] decodedCredentials = Base64.getDecoder().decode(base64Credentials);
+        byte[] decodedCredentials;
+        try {
+            decodedCredentials = Base64.getDecoder().decode(base64Credentials);
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("Invalid Base64 authorization header encoding");
+        }
         String[] split = new String(decodedCredentials).split(":");
         if (split.length != 2) {
             throw new IllegalArgumentException("Invalid authorization header content, " +
@@ -61,11 +70,12 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         return split;
     }
 
-    private void authenticate(String username, String password) {
+    private AuthResult authenticate(String username, String password) {
         try {
             authenticationService.authenticate(username, password);
         } catch (LoginException ex) {
-            throw new IllegalArgumentException(ex.getMessage());
+            return new AuthResult(AuthResult.Status.UNAUTHORIZED, ex.getMessage());
         }
+        return new AuthResult(AuthResult.Status.SUCCESS, null);
     }
 }

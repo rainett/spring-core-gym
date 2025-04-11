@@ -11,7 +11,6 @@ public class UpdatePasswordRequest {
     @ToString.Exclude
     private String oldPassword;
 
-    @NotBlank
     @Size(min = 6)
     @ToString.Exclude
     private String newPassword;

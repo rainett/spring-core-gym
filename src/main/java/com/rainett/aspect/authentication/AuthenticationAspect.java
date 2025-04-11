@@ -1,6 +1,8 @@
 package com.rainett.aspect.authentication;
 
 import com.rainett.annotations.Authenticated;
+import com.rainett.dto.AuthResult;
+import com.rainett.exceptions.AuthenticationException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 import org.aspectj.lang.JoinPoint;
@@ -20,22 +22,25 @@ public class AuthenticationAspect {
 
     @Before("within(@com.rainett.annotations.Authenticated *) || @annotation(com.rainett.annotations.Authenticated)")
     public void checkAuthentication(JoinPoint joinPoint) {
-        Authenticated annotation = getAnnotation(joinPoint);
-        if (annotation != null && annotation.ignore()) {
+        if (skipAuthentication(joinPoint)) {
             return;
         }
         HttpServletRequest currentRequest = getCurrentRequest();
         Object attribute = currentRequest.getAttribute(AUTHENTICATED_ATTRIBUTE);
-        if (!(attribute instanceof IllegalArgumentException)) {
-            return;
+        if (!(attribute instanceof AuthResult authResult)) {
+            throw new AuthenticationException(500,
+                    "No authentication information found in attribute " + AUTHENTICATED_ATTRIBUTE);
         }
-        throw (IllegalArgumentException) attribute;
+        if (authResult.status() != AuthResult.Status.SUCCESS) {
+            throw new AuthenticationException(authResult.status().getCode(), authResult.message());
+        }
     }
 
-    private static Authenticated getAnnotation(JoinPoint joinPoint) {
+    private static boolean skipAuthentication(JoinPoint joinPoint) {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();
-        return AnnotationUtils.findAnnotation(method, Authenticated.class);
+        Authenticated authenticated = AnnotationUtils.findAnnotation(method, Authenticated.class);
+        return authenticated != null && authenticated.ignore();
     }
 
     private static HttpServletRequest getCurrentRequest() {

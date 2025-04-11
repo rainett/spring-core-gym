@@ -3,6 +3,7 @@ package com.rainett.controller;
 import com.rainett.annotations.Loggable;
 import com.rainett.dto.ErrorResponse;
 import com.rainett.exceptions.LoginException;
+import com.rainett.exceptions.AuthenticationException;
 import com.rainett.exceptions.ResourceNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
@@ -42,6 +43,11 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleNoAuthInfoException(AuthenticationException ex) {
+        return buildResponse(ex.getCode(), ex.getMessage());
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleEntityNotFound(ResourceNotFoundException ex) {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
@@ -75,6 +81,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+    }
+
+    private ResponseEntity<ErrorResponse> buildResponse(int code, String message) {
+        return buildResponse(HttpStatus.valueOf(code), message);
     }
 
     private ResponseEntity<ErrorResponse> buildResponse(HttpStatus status, String message) {

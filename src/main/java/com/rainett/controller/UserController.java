@@ -2,6 +2,7 @@ package com.rainett.controller;
 
 import com.rainett.annotations.Authenticated;
 import com.rainett.annotations.Loggable;
+import com.rainett.annotations.SecuredOperation;
 import com.rainett.dto.ErrorResponse;
 import com.rainett.dto.user.LoginRequest;
 import com.rainett.dto.user.UpdatePasswordRequest;
@@ -11,7 +12,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,21 +33,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
     private final UserService userService;
 
+    @SecuredOperation
     @Operation(
             summary = "User Login",
-            description = "Authenticates a user, sends an error if authentication fails",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Login successful"),
-                    @ApiResponse(responseCode = "400", description = "Invalid auth header",
-                            content = @Content(schema = @Schema(implementation = ErrorResponse.class),
-                                    mediaType = "application/json")),
-                    @ApiResponse(responseCode = "401", description = "Unauthorized",
-                            content = @Content(schema = @Schema(implementation = ErrorResponse.class),
-                                    mediaType = "application/json"))
-            },
-            security = {
-                    @SecurityRequirement(name = "basicAuth") // to implement
-            }
+            description = "Authenticates a user based on Basic Authorization",
+            responses = @ApiResponse(responseCode = "200", description = "Login successful")
+
     )
     @PostMapping("/login")
     public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest request) {
@@ -55,6 +46,17 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    @SecuredOperation
+    @Operation(
+            summary = "Update password",
+            description = "Updates a user's password",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Password updated successfully"),
+                    @ApiResponse(responseCode = "404", description = "User not found",
+                            content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                                    mediaType = "application/json"))
+            }
+    )
     @PutMapping("/{username}/password")
     public ResponseEntity<Void> updatePassword(@PathVariable("username") String username,
                                                @Valid @RequestBody UpdatePasswordRequest request) {
@@ -62,6 +64,17 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    @SecuredOperation
+    @Operation(
+            summary = "Update status",
+            description = "Updates a user's status",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Status updated successfully"),
+                    @ApiResponse(responseCode = "404", description = "User not found",
+                            content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                                    mediaType = "application/json"))
+            }
+    )
     @PatchMapping("/{username}/status")
     public ResponseEntity<Void> updateStatus(@PathVariable("username") String username,
                                              @Valid @RequestBody UpdateUserActiveRequest request) {
