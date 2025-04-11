@@ -18,13 +18,13 @@ public interface TraineeRepository extends JpaRepository<Trainee, Long> {
     Optional<Trainee> findByUsername(String username);
 
     @Query("SELECT new com.rainett.dto.trainee.TraineeResponse(" +
-           "t.username, t.firstName, t.lastName, t.dateOfBirth, t.address, t.isActive, null) " +
+           "t.username, t.firstName, t.lastName, cast(t.dateOfBirth as string), t.address, t.isActive, null) " +
            "FROM Trainee t " +
            "WHERE t.username = :username")
     Optional<TraineeResponse> findTraineeDtoByUsername(@Param("username") String traineeUsername);
 
     @Query("SELECT new com.rainett.dto.trainee.TraineeTrainingsResponse(" +
-           "training.name, training.date, training.trainingType.name, training.duration, trainer.username) " +
+           "training.name, cast(training.date as string), training.trainingType.name, training.duration, trainer.username) " +
            "FROM Trainee trainee " +
            "JOIN trainee.trainings training " +
            "JOIN training.trainer trainer " +

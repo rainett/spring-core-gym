@@ -1,6 +1,5 @@
 package com.rainett.dto.trainer;
 
-import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TrainerTrainingResponse {
     private String trainingName;
-    private LocalDate date;
+    private String date;
     private String trainingType;
     private long duration;
     private String traineeUsername;

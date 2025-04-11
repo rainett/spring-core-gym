@@ -24,7 +24,7 @@ public interface TrainerRepository extends JpaRepository<Trainer, Long> {
     Optional<TrainerResponse> findTrainerDtoByUsername(@Param("username") String trainerUsername);
 
     @Query("SELECT new com.rainett.dto.trainer.TrainerTrainingResponse(" +
-           "training.name, training.date, training.trainingType.name, training.duration, trainee.username) " +
+           "training.name, cast(training.date as string), training.trainingType.name, training.duration, trainee.username) " +
            "FROM Trainer trainer " +
            "JOIN trainer.trainings training " +
            "JOIN training.trainee trainee " +
