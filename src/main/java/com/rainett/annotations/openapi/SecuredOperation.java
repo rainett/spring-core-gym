@@ -1,4 +1,4 @@
-package com.rainett.annotations;
+package com.rainett.annotations.openapi;
 
 import com.rainett.dto.ErrorResponse;
 import io.swagger.v3.oas.annotations.media.Content;

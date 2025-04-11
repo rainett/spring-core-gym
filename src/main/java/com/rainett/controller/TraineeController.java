@@ -2,6 +2,11 @@ package com.rainett.controller;
 
 import com.rainett.annotations.Authenticated;
 import com.rainett.annotations.Loggable;
+import com.rainett.annotations.openapi.CreatedResponse;
+import com.rainett.annotations.openapi.DeletedResponse;
+import com.rainett.annotations.openapi.NotFoundResponse;
+import com.rainett.annotations.openapi.OkResponse;
+import com.rainett.annotations.openapi.SecuredOperation;
 import com.rainett.dto.trainee.CreateTraineeRequest;
 import com.rainett.dto.trainee.TraineeResponse;
 import com.rainett.dto.trainee.TraineeTrainingsResponse;
@@ -10,6 +15,11 @@ import com.rainett.dto.trainee.UpdateTraineeRequest;
 import com.rainett.dto.trainee.UpdateTraineeTrainersRequest;
 import com.rainett.dto.user.UserCredentialsResponse;
 import com.rainett.service.TraineeService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
@@ -26,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Trainee API", description = "Endpoints for managing trainees")
 @Loggable
 @Authenticated
 @RestController
@@ -34,6 +45,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class TraineeController {
     private final TraineeService traineeService;
 
+    @SecuredOperation
+    @NotFoundResponse(description = "Trainee not found")
+    @OkResponse(description = "Trainee found successfully",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = TraineeResponse.class))
+    )
+    @Operation(
+            summary = "Get trainee by username",
+            description = "Retrieves a trainee by username"
+    )
     @GetMapping("/{username}")
     public ResponseEntity<TraineeResponse> getTraineeByUsername(
             @PathVariable("username") String username) {
@@ -41,6 +62,19 @@ public class TraineeController {
         return ResponseEntity.ok(traineeResponse);
     }
 
+    @SecuredOperation
+    @NotFoundResponse(description = "Trainee not found")
+    @OkResponse(description = "Trainings found successfully",
+            content = @Content(mediaType = "application/json",
+                    array = @ArraySchema(
+                            schema = @Schema(implementation = TraineeTrainingsResponse.class)
+                    )
+            )
+    )
+    @Operation(
+            summary = "Get trainee trainings",
+            description = "Retrieves trainings for a trainee"
+    )
     @GetMapping("/{username}/trainings")
     public ResponseEntity<List<TraineeTrainingsResponse>> getTraineeTrainings(
             @PathVariable("username") String username,
@@ -53,6 +87,19 @@ public class TraineeController {
         return ResponseEntity.ok(traineeTrainingsResponse);
     }
 
+    @SecuredOperation
+    @NotFoundResponse(description = "Trainee not found")
+    @OkResponse(description = "Trainers found successfully",
+            content = @Content(mediaType = "application/json",
+                    array = @ArraySchema(
+                            schema = @Schema(implementation = TrainerDto.class)
+                    )
+            )
+    )
+    @Operation(
+            summary = "Get unassigned trainers",
+            description = "Retrieves unassigned trainers for a trainee"
+    )
     @GetMapping("/{username}/unassigned-trainers")
     public ResponseEntity<List<TrainerDto>> getUnassignedTrainers(
             @PathVariable("username") String username) {
@@ -60,6 +107,13 @@ public class TraineeController {
         return ResponseEntity.ok(trainerDto);
     }
 
+    @CreatedResponse(description = "Trainee created successfully",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = UserCredentialsResponse.class)))
+    @Operation(
+            summary = "Create trainee",
+            description = "Creates a new trainee"
+    )
     @PostMapping
     @Authenticated(ignore = true)
     public ResponseEntity<UserCredentialsResponse> createTrainee(
@@ -68,6 +122,15 @@ public class TraineeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(userCredentialsResponse);
     }
 
+    @SecuredOperation
+    @NotFoundResponse(description = "Trainee not found")
+    @OkResponse(description = "Trainee updated successfully",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = TraineeResponse.class)))
+    @Operation(
+            summary = "Update trainee",
+            description = "Updates a trainee"
+    )
     @PutMapping("/{username}")
     public ResponseEntity<TraineeResponse> updateTrainee(
             @PathVariable("username") String username,
@@ -76,6 +139,19 @@ public class TraineeController {
         return ResponseEntity.ok(traineeResponse);
     }
 
+    @SecuredOperation
+    @NotFoundResponse(description = "Trainee not found")
+    @OkResponse(description = "Trainers updated successfully",
+            content = @Content(mediaType = "application/json",
+                    array = @ArraySchema(
+                            schema = @Schema(implementation = TrainerDto.class)
+                    )
+            )
+    )
+    @Operation(
+            summary = "Update trainers",
+            description = "Updates trainers for a trainee"
+    )
     @PutMapping("/{username}/trainers")
     public ResponseEntity<List<TrainerDto>> updateTrainers(
             @PathVariable("username") String username,
@@ -84,6 +160,13 @@ public class TraineeController {
         return ResponseEntity.ok(trainerDto);
     }
 
+    @SecuredOperation
+    @NotFoundResponse(description = "Trainee not found")
+    @DeletedResponse(description = "Trainee deleted successfully")
+    @Operation(
+            summary = "Delete trainee",
+            description = "Deletes a trainee"
+    )
     @DeleteMapping("/{username}")
     public ResponseEntity<Void> deleteProfile(@PathVariable("username") String username) {
         traineeService.deleteProfile(username);

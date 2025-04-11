@@ -2,16 +2,14 @@ package com.rainett.controller;
 
 import com.rainett.annotations.Authenticated;
 import com.rainett.annotations.Loggable;
-import com.rainett.annotations.SecuredOperation;
-import com.rainett.dto.ErrorResponse;
+import com.rainett.annotations.openapi.NotFoundResponse;
+import com.rainett.annotations.openapi.OkResponse;
+import com.rainett.annotations.openapi.SecuredOperation;
 import com.rainett.dto.user.LoginRequest;
 import com.rainett.dto.user.UpdatePasswordRequest;
 import com.rainett.dto.user.UpdateUserActiveRequest;
 import com.rainett.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,11 +32,10 @@ public class UserController {
     private final UserService userService;
 
     @SecuredOperation
+    @OkResponse(description = "User logged in successfully")
     @Operation(
             summary = "User Login",
-            description = "Authenticates a user based on Basic Authorization",
-            responses = @ApiResponse(responseCode = "200", description = "Login successful")
-
+            description = "Authenticates a user based on Basic Authorization"
     )
     @PostMapping("/login")
     public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest request) {
@@ -47,15 +44,11 @@ public class UserController {
     }
 
     @SecuredOperation
+    @NotFoundResponse(description = "User not found")
+    @OkResponse(description = "Password updated successfully")
     @Operation(
             summary = "Update password",
-            description = "Updates a user's password",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Password updated successfully"),
-                    @ApiResponse(responseCode = "404", description = "User not found",
-                            content = @Content(schema = @Schema(implementation = ErrorResponse.class),
-                                    mediaType = "application/json"))
-            }
+            description = "Updates a user's password"
     )
     @PutMapping("/{username}/password")
     public ResponseEntity<Void> updatePassword(@PathVariable("username") String username,
@@ -65,15 +58,11 @@ public class UserController {
     }
 
     @SecuredOperation
+    @NotFoundResponse(description = "User not found")
+    @OkResponse(description = "Status updated successfully")
     @Operation(
             summary = "Update status",
-            description = "Updates a user's status",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Status updated successfully"),
-                    @ApiResponse(responseCode = "404", description = "User not found",
-                            content = @Content(schema = @Schema(implementation = ErrorResponse.class),
-                                    mediaType = "application/json"))
-            }
+            description = "Updates a user's status"
     )
     @PatchMapping("/{username}/status")
     public ResponseEntity<Void> updateStatus(@PathVariable("username") String username,
