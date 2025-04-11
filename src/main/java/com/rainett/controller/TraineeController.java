@@ -7,6 +7,7 @@ import com.rainett.annotations.openapi.DeletedResponse;
 import com.rainett.annotations.openapi.NotFoundResponse;
 import com.rainett.annotations.openapi.OkResponse;
 import com.rainett.annotations.openapi.SecuredOperation;
+import com.rainett.annotations.openapi.ValidationResponse;
 import com.rainett.dto.trainee.CreateTraineeRequest;
 import com.rainett.dto.trainee.TraineeResponse;
 import com.rainett.dto.trainee.TraineeTrainingsResponse;
@@ -107,6 +108,7 @@ public class TraineeController {
         return ResponseEntity.ok(trainerDto);
     }
 
+    @ValidationResponse
     @CreatedResponse(description = "Trainee created successfully",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = UserCredentialsResponse.class)))
@@ -122,6 +124,7 @@ public class TraineeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(userCredentialsResponse);
     }
 
+    @ValidationResponse
     @SecuredOperation
     @NotFoundResponse(description = "Trainee not found")
     @OkResponse(description = "Trainee updated successfully",
@@ -139,6 +142,7 @@ public class TraineeController {
         return ResponseEntity.ok(traineeResponse);
     }
 
+    @ValidationResponse
     @SecuredOperation
     @NotFoundResponse(description = "Trainee not found")
     @OkResponse(description = "Trainers updated successfully",

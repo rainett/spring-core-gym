@@ -5,6 +5,7 @@ import com.rainett.annotations.Loggable;
 import com.rainett.annotations.openapi.NotFoundResponse;
 import com.rainett.annotations.openapi.OkResponse;
 import com.rainett.annotations.openapi.SecuredOperation;
+import com.rainett.annotations.openapi.ValidationResponse;
 import com.rainett.dto.user.LoginRequest;
 import com.rainett.dto.user.UpdatePasswordRequest;
 import com.rainett.dto.user.UpdateUserActiveRequest;
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
     private final UserService userService;
 
+    @ValidationResponse
     @SecuredOperation
     @OkResponse(description = "User logged in successfully")
     @Operation(
@@ -43,6 +45,7 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    @ValidationResponse
     @SecuredOperation
     @NotFoundResponse(description = "User not found")
     @OkResponse(description = "Password updated successfully")
@@ -57,6 +60,7 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    @ValidationResponse
     @SecuredOperation
     @NotFoundResponse(description = "User not found")
     @OkResponse(description = "Status updated successfully")

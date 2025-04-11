@@ -24,7 +24,8 @@ public class ControllerLogger implements AnnotationAwareLogger {
         try {
             result = joinPoint.proceed();
         } catch (Throwable ex) {
-            log.info("<- [{}#{}] threw exception: {}", className, methodName, ex.getMessage());
+            log.info("<- [{}#{}] threw exception {}: {}", className,
+                    methodName, ex.getClass().getSimpleName(), ex.getMessage());
             throw ex;
         }
         int status = 200;
