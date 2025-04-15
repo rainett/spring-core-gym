@@ -1,16 +1,30 @@
 package com.rainett.service.impl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.rainett.dao.TrainerDao;
+import com.rainett.dto.trainer.CreateTrainerRequest;
+import com.rainett.dto.trainer.TraineeDto;
+import com.rainett.dto.trainer.TrainerResponse;
+import com.rainett.dto.trainer.TrainerTrainingResponse;
+import com.rainett.dto.trainer.UpdateTrainerRequest;
+import com.rainett.dto.user.UserCredentialsResponse;
+import com.rainett.exceptions.ResourceNotFoundException;
+import com.rainett.mapper.TrainerMapper;
 import com.rainett.model.Trainer;
-import com.rainett.service.UserService;
-import java.util.Arrays;
+import com.rainett.model.TrainingType;
+import com.rainett.repository.TraineeRepository;
+import com.rainett.repository.TrainerRepository;
+import com.rainett.repository.TrainingTypeRepository;
+import com.rainett.service.CredentialService;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,81 +34,139 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class TrainerServiceImplTest {
     @Mock
-    private TrainerDao trainerDao;
+    private TrainerRepository trainerRepository;
 
     @Mock
-    private UserService userService;
+    private TraineeRepository traineeRepository;
+
+    @Mock
+    private TrainingTypeRepository trainingTypeRepository;
+
+    @Mock
+    private TrainerMapper trainerMapper;
+
+    @Mock
+    private CredentialService credentialService;
 
     @InjectMocks
     private TrainerServiceImpl trainerService;
 
-    @Test
-    void testCreateProfile() {
-        Trainer trainer = new Trainer();
-        trainer.setFirstName("Jane");
-        trainer.setLastName("Doe");
+    private final String username = "trainer1";
+    private final String specializationName = "Fitness";
 
-        when(userService.generateUniqueUsername("Jane", "Doe")).thenReturn("jane.doe");
-        when(userService.generateRandomPassword()).thenReturn("abcdefghij");
-        when(trainerDao.save(trainer)).thenReturn(trainer);
+    private TrainerResponse trainerResponse;
+    private TrainerTrainingResponse trainerTrainingResponse;
+    private Trainer trainer;
+    private TrainingType trainingType;
 
-        Trainer result = trainerService.createProfile(trainer);
-
-        assertEquals("jane.doe", trainer.getUsername(), "Username should be set to 'jane.doe'");
-        assertEquals("abcdefghij", trainer.getPassword(), "Password should be set to 'abcdefghij'");
-        verify(userService, times(1)).generateUniqueUsername("Jane", "Doe");
-        verify(userService, times(1)).generateRandomPassword();
-        verify(trainerDao, times(1)).save(trainer);
-        assertEquals(trainer, result, "The created profile should match the saved trainer");
+    @BeforeEach
+    void setUp() {
+        trainerResponse = new TrainerResponse();
+        trainerResponse.setUsername(username);
+        trainerTrainingResponse = new TrainerTrainingResponse();
+        trainerTrainingResponse.setTrainingName("Cardio Session");
+        trainer = new Trainer();
+        trainer.setUsername(username);
+        trainer.setPassword("password");
+        trainingType = new TrainingType();
     }
 
     @Test
-    void testUpdateProfile_Success() {
-        Trainer trainer = new Trainer();
-        trainer.setUserId(1L);
-        when(trainerDao.findByUserId(1L)).thenReturn(trainer);
-        when(trainerDao.save(trainer)).thenReturn(trainer);
+    void findByUsername_shouldReturnTrainerResponse_whenFound() {
+        when(trainerRepository.findTrainerDtoByUsername(username))
+                .thenReturn(Optional.of(trainerResponse));
+        List<TraineeDto> dummyTrainees = List.of(new TraineeDto(), new TraineeDto());
+        when(traineeRepository.findTraineesDtoForTrainer(username))
+                .thenReturn(dummyTrainees);
 
-        Trainer result = trainerService.updateProfile(trainer);
+        TrainerResponse response = trainerService.findByUsername(username);
 
-        verify(trainerDao, times(1)).findByUserId(1L);
-        verify(trainerDao, times(1)).save(trainer);
-        assertEquals(trainer, result, "Updated profile should match the saved trainer");
+        assertThat(response).isNotNull();
+        assertThat(response.getUsername()).isEqualTo(username);
+        assertThat(response.getTrainees()).isEqualTo(dummyTrainees);
+        verify(trainerRepository, times(1)).findTrainerDtoByUsername(username);
+        verify(traineeRepository, times(1)).findTraineesDtoForTrainer(username);
     }
 
     @Test
-    void testUpdateProfile_NotFound() {
-        Trainer trainer = new Trainer();
-        trainer.setUserId(2L);
-        when(trainerDao.findByUserId(2L)).thenReturn(null);
+    void findByUsername_shouldThrowResourceNotFound_whenTrainerDtoNotFound() {
+        when(trainerRepository.findTrainerDtoByUsername(username))
+                .thenReturn(Optional.empty());
 
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            trainerService.updateProfile(trainer);
-        });
-        assertEquals("Trainee not found", exception.getMessage(), "Expected error message for non-existent trainer");
-        verify(trainerDao, times(1)).findByUserId(2L);
-        verify(trainerDao, times(0)).save(trainer);
+        Exception ex = assertThrows(ResourceNotFoundException.class,
+                () -> trainerService.findByUsername(username));
+        String message = String.format("Trainer not found for username = [%s]", username);
+        assertThat(ex.getMessage()).isEqualTo(message);
     }
 
     @Test
-    void testGetProfile() {
-        Trainer trainer = new Trainer();
-        when(trainerDao.findByUserId(1L)).thenReturn(trainer);
+    void findTrainings_shouldReturnTrainings_whenTrainerExists() {
+        LocalDate from = LocalDate.now().minusDays(5);
+        LocalDate to = LocalDate.now();
+        String traineeUsername = "trainee1";
 
-        Trainer result = trainerService.getProfile(1L);
+        when(trainerRepository.existsByUsername(username)).thenReturn(true);
+        List<TrainerTrainingResponse> trainings = List.of(trainerTrainingResponse);
+        when(trainerRepository.findTrainerTrainingsDto(username, from, to, traineeUsername))
+                .thenReturn(trainings);
 
-        verify(trainerDao, times(1)).findByUserId(1L);
-        assertEquals(trainer, result, "getProfile should return the expected trainer");
+        List<TrainerTrainingResponse> result =
+                trainerService.findTrainings(username, from, to, traineeUsername);
+        assertThat(result).isEqualTo(trainings);
     }
 
     @Test
-    void testGetAll() {
-        List<Trainer> trainers = Arrays.asList(new Trainer(), new Trainer());
-        when(trainerDao.findAll()).thenReturn(trainers);
+    void findTrainings_shouldThrowResourceNotFound_whenTrainerDoesNotExist() {
+        when(trainerRepository.existsByUsername(username)).thenReturn(false);
 
-        List<Trainer> result = trainerService.getAll();
+        assertThrows(ResourceNotFoundException.class,
+                () -> trainerService.findTrainings(username, null, null, null));
+    }
 
-        verify(trainerDao, times(1)).findAll();
-        assertEquals(trainers, result, "getAll should return all trainers");
+    @Test
+    void createProfile_shouldCreateTrainerAndReturnUserCredentials() {
+        CreateTrainerRequest request = new CreateTrainerRequest();
+        request.setSpecialization(specializationName);
+        when(trainerMapper.toEntity(request)).thenReturn(trainer);
+        when(trainingTypeRepository.findByName(specializationName)).thenReturn(Optional.of(
+                trainingType));
+        when(trainerRepository.save(trainer)).thenReturn(trainer);
+
+        UserCredentialsResponse response = trainerService.createProfile(request);
+
+        verify(credentialService, times(1)).createCredentials(trainer);
+        assertThat(response.getUsername()).isEqualTo(username);
+        assertThat(response.getPassword()).isEqualTo(trainer.getPassword());
+    }
+
+    @Test
+    void createProfile_shouldThrowResourceNotFound_whenTrainingTypeNotFound() {
+        CreateTrainerRequest request = new CreateTrainerRequest();
+        request.setSpecialization(specializationName);
+        when(trainerMapper.toEntity(request)).thenReturn(trainer);
+        when(trainingTypeRepository.findByName(specializationName)).thenReturn(Optional.empty());
+
+        Exception ex = assertThrows(ResourceNotFoundException.class,
+                () -> trainerService.createProfile(request));
+        assertThat(ex.getMessage()).contains(
+                "Training type not found for name = [" + specializationName + "]");
+    }
+
+    @Test
+    void updateTrainer_shouldUpdateTrainerAndReturnResponse() {
+        UpdateTrainerRequest request = new UpdateTrainerRequest();
+        request.setSpecialization(specializationName);
+        when(trainerRepository.findByUsername(username)).thenReturn(Optional.of(trainer));
+        when(trainingTypeRepository.findByName(specializationName)).thenReturn(Optional.of(
+                trainingType));
+        doNothing().when(trainerMapper).updateEntity(trainer, request);
+        TrainerResponse updatedResponse = new TrainerResponse();
+        updatedResponse.setUsername(username);
+        when(trainerMapper.toDto(trainer)).thenReturn(updatedResponse);
+
+        TrainerResponse response = trainerService.updateTrainer(username, request);
+        assertThat(trainer.getSpecialization()).isEqualTo(trainingType);
+        assertThat(trainer.getActiveUpdatedAt()).isNotNull();
+        assertThat(response).isEqualTo(updatedResponse);
     }
 }

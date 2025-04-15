@@ -28,12 +28,12 @@ public class Trainee extends User {
     @ToString.Exclude
     @ManyToMany(mappedBy = "trainees", cascade = CascadeType.MERGE)
     @Setter(AccessLevel.PRIVATE)
-    private Set<Trainer> trainers;
+    private Set<Trainer> trainers = new HashSet<>();
 
     @ToString.Exclude
     @OneToMany(mappedBy = "trainee", cascade = CascadeType.ALL)
     @Setter(AccessLevel.PRIVATE)
-    private Set<Training> trainings;
+    private Set<Training> trainings = new HashSet<>();
 
     public void updateTrainers(List<Trainer> trainers) {
         Set<Trainer> newTrainersSet = new HashSet<>(trainers);

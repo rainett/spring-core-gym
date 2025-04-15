@@ -1,14 +1,20 @@
 package com.rainett.health;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+@Slf4j
 @Component
+@RequiredArgsConstructor
 public class ExternalServiceHealthIndicator implements HealthIndicator {
-    private static final String HOST = "https://www.strava.com/";
+    @Value("${external.service:https://strava.com}")
+    private String host;
 
     @Override
     public Health health() {
@@ -23,12 +29,12 @@ public class ExternalServiceHealthIndicator implements HealthIndicator {
     private boolean checkServiceHealth() {
         RestTemplate restTemplate = new RestTemplate();
         try {
-            ResponseEntity<String> response = restTemplate.getForEntity(HOST, String.class);
+            ResponseEntity<String> response = restTemplate.getForEntity(host, String.class);
             if (response.getStatusCode().is2xxSuccessful()) {
                 return true;
             }
-        } catch (Exception e) {
-            return false;
+        } catch (Exception ex) {
+            log.warn("An exception occurred while reaching {}", host, ex);
         }
         return false;
     }

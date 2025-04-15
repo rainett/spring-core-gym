@@ -1,16 +1,36 @@
 package com.rainett.service.impl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.rainett.dao.TraineeDao;
+import com.rainett.dto.trainee.CreateTraineeRequest;
+import com.rainett.dto.trainee.TraineeResponse;
+import com.rainett.dto.trainee.TraineeTrainingsResponse;
+import com.rainett.dto.trainee.TrainerDto;
+import com.rainett.dto.trainee.UpdateTraineeRequest;
+import com.rainett.dto.trainee.UpdateTraineeTrainersRequest;
+import com.rainett.dto.user.UserCredentialsResponse;
+import com.rainett.exceptions.ResourceNotFoundException;
+import com.rainett.mapper.TraineeMapper;
 import com.rainett.model.Trainee;
-import com.rainett.service.UserService;
+import com.rainett.model.Trainer;
+import com.rainett.repository.TraineeRepository;
+import com.rainett.repository.TrainerRepository;
+import com.rainett.service.CredentialService;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,91 +40,190 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class TraineeServiceImplTest {
     @Mock
-    private TraineeDao traineeDao;
+    private TraineeRepository traineeRepository;
 
     @Mock
-    private UserService userService;
+    private TrainerRepository trainerRepository;
+
+    @Mock
+    private TraineeMapper traineeMapper;
+
+    @Mock
+    private CredentialService credentialService;
 
     @InjectMocks
     private TraineeServiceImpl traineeService;
 
-    @Test
-    void testCreateProfile() {
-        Trainee trainee = new Trainee();
-        trainee.setFirstName("John");
-        trainee.setLastName("Doe");
-        when(userService.generateUniqueUsername("John", "Doe")).thenReturn("john.doe");
-        when(userService.generateRandomPassword()).thenReturn("abcdefghij");
-        when(traineeDao.save(trainee)).thenReturn(trainee);
+    private final String username = "john.doe";
+    private TraineeResponse traineeResponse;
+    private Trainee trainee;
+    private TrainerDto trainerDto;
+    private TraineeTrainingsResponse trainingResponse;
 
-        Trainee result = traineeService.createProfile(trainee);
+    @BeforeEach
+    void setUp() {
+        traineeResponse = new TraineeResponse();
+        traineeResponse.setUsername(username);
 
-        assertEquals("john.doe", trainee.getUsername(), "Username should be set to 'john.doe'");
-        assertEquals("abcdefghij", trainee.getPassword(), "Password should be set to 'abcdefghij'");
-        verify(userService, times(1)).generateUniqueUsername("John", "Doe");
-        verify(userService, times(1)).generateRandomPassword();
-        verify(traineeDao, times(1)).save(trainee);
-        assertEquals(trainee, result, "The created profile should match the saved trainee");
+        trainerDto = new TrainerDto();
+        trainerDto.setUsername("trainer1");
+        trainerDto.setFirstName("Trainer");
+        trainerDto.setLastName("One");
+
+        trainingResponse = new TraineeTrainingsResponse();
+        trainingResponse.setTrainingName("Yoga");
+
+        trainee = new Trainee();
+        trainee.setUsername(username);
+        trainee.setPassword("password");
     }
 
     @Test
-    void testUpdateProfile_Success() {
-        Trainee trainee = new Trainee();
-        trainee.setUserId(1L);
-        when(traineeDao.findByUserId(1L)).thenReturn(trainee);
-        when(traineeDao.save(trainee)).thenReturn(trainee);
+    void findByUsername_shouldReturnTraineeResponse_whenTraineeFound() {
+        when(traineeRepository.findTraineeDtoByUsername(username))
+                .thenReturn(Optional.of(traineeResponse));
+        when(trainerRepository.findTrainersDtoForTrainee(username))
+                .thenReturn(List.of(trainerDto));
 
-        Trainee result = traineeService.updateProfile(trainee);
+        TraineeResponse response = traineeService.findByUsername(username);
 
-        verify(traineeDao, times(1)).findByUserId(1L);
-        verify(traineeDao, times(1)).save(trainee);
-        assertEquals(trainee, result, "Updated profile should match the saved trainee");
+        assertThat(response).isNotNull();
+        assertThat(response.getUsername()).isEqualTo(username);
+        assertThat(response.getTrainers()).containsExactly(trainerDto);
+        verify(traineeRepository, times(1)).findTraineeDtoByUsername(username);
+        verify(trainerRepository, times(1)).findTrainersDtoForTrainee(username);
     }
 
     @Test
-    void testUpdateProfile_NotFound() {
-        Trainee trainee = new Trainee();
-        trainee.setUserId(2L);
-        when(traineeDao.findByUserId(2L)).thenReturn(null);
+    void findByUsername_shouldThrowResourceNotFound_whenTraineeNotFound() {
+        when(traineeRepository.findTraineeDtoByUsername(username)).thenReturn(Optional.empty());
+        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
+                        () -> traineeService.findByUsername(username));
+        assertThat(ex.getMessage()).contains(
+                String.format("Trainee not found for username = [%s]", username));
+    }
 
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            traineeService.updateProfile(trainee);
+    @Test
+    void findTrainings_shouldReturnTrainings_whenTraineeExists() {
+        LocalDate from = LocalDate.now().minusDays(10);
+        LocalDate to = LocalDate.now();
+        String trainerUsername = "trainer1";
+        String trainingType = "Yoga";
+
+        when(traineeRepository.existsByUsername(username)).thenReturn(true);
+        when(traineeRepository
+                .findTraineeTrainingsDto(username, from, to, trainerUsername, trainingType))
+                .thenReturn(List.of(trainingResponse));
+
+        List<TraineeTrainingsResponse> trainings = traineeService.findTrainings(
+                username, from, to, trainerUsername, trainingType);
+
+        assertThat(trainings).hasSize(1);
+        assertThat(trainings.get(0).getTrainingName()).isEqualTo("Yoga");
+    }
+
+    @Test
+    void findTrainings_shouldThrowResourceNotFound_whenTraineeDoesNotExist() {
+        when(traineeRepository.existsByUsername(username)).thenReturn(false);
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> traineeService.findTrainings(username, null, null, null, null));
+    }
+
+    @Test
+    void findUnassignedTrainers_shouldReturnTrainerDtos_whenTraineeExists() {
+        when(traineeRepository.existsByUsername(username)).thenReturn(true);
+        List<TrainerDto> list = List.of(trainerDto);
+        when(traineeRepository.findUnassignedTrainersDto(username)).thenReturn(list);
+
+        List<TrainerDto> dtos = traineeService.findUnassignedTrainers(username);
+
+        assertThat(dtos).isEqualTo(list);
+    }
+
+    @Test
+    void findUnassignedTrainers_shouldThrowResourceNotFound_whenTraineeDoesNotExist() {
+        when(traineeRepository.existsByUsername(username)).thenReturn(false);
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> traineeService.findUnassignedTrainers(username));
+    }
+
+    @Test
+    void createProfile_shouldCreateProfileAndReturnUserCredentials() {
+        CreateTraineeRequest request = new CreateTraineeRequest();
+        when(traineeMapper.toEntity(request)).thenReturn(trainee);
+        when(traineeRepository.save(trainee)).thenReturn(trainee);
+
+        UserCredentialsResponse result = traineeService.createProfile(request);
+        verify(credentialService, times(1)).createCredentials(trainee);
+        assertThat(result.getUsername()).isEqualTo(username);
+        assertThat(result.getPassword()).isEqualTo("password");
+    }
+
+    @Test
+    void updateTrainee_shouldUpdateTraineeAndReturnResponse() {
+        UpdateTraineeRequest request = new UpdateTraineeRequest();
+        when(traineeRepository.findByUsername(username)).thenReturn(Optional.of(trainee));
+        doAnswer(invocation -> null).when(traineeMapper).updateEntity(trainee, request);
+        when(traineeMapper.toDto(trainee)).thenReturn(traineeResponse);
+
+        TraineeResponse response = traineeService.updateTrainee(username, request);
+
+        assertThat(trainee.getActiveUpdatedAt()).isNotNull();
+        assertThat(response).isEqualTo(traineeResponse);
+    }
+
+    @Test
+    void updateTrainers_shouldUpdateTrainersAndReturnTrainerDtos() {
+        UpdateTraineeTrainersRequest request = new UpdateTraineeTrainersRequest();
+        List<String> trainerUsernames = List.of("trainer1", "trainer2");
+        request.setTrainersUsernames(trainerUsernames);
+
+        when(traineeRepository.findByUsername(username)).thenReturn(Optional.of(trainee));
+        Trainer trainer1 = new Trainer();
+        trainer1.setId(1L);
+        trainer1.setUsername("trainer1");
+        Trainer trainer2 = new Trainer();
+        trainer2.setId(2L);
+        trainer2.setUsername("trainer2");
+        List<Trainer> trainers = List.of(trainer1, trainer2);
+        when(trainerRepository.findByUsernameIn(trainerUsernames)).thenReturn(trainers);
+        when(traineeMapper.toTrainerDto(any(Trainer.class))).thenAnswer(invocation -> {
+            Trainer trainer = invocation.getArgument(0);
+            TrainerDto dto = new TrainerDto();
+            dto.setUsername(trainer.getUsername());
+            return dto;
         });
-        assertEquals("Trainee not found", exception.getMessage(), "Expected error message for non-existent trainee");
-        verify(traineeDao, times(1)).findByUserId(2L);
-        verify(traineeDao, times(0)).save(trainee);
+
+        List<TrainerDto> result = traineeService.updateTrainers(username, request);
+
+        assertThat(trainee.getTrainers()).containsExactlyInAnyOrderElementsOf(trainers);
+        assertThat(result).hasSize(2);
     }
 
     @Test
-    void testDeleteProfile() {
-        Long userId = 1L;
-        when(traineeDao.deleteByUserId(userId)).thenReturn(new Trainee());
+    void deleteProfile_shouldRemoveTraineeFromAllTrainersAndDeleteTrainee()
+            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Trainer trainer1 = new Trainer();
+        trainer1.setId(1L);
+        Trainer trainer2 = new Trainer();
+        trainer2.setId(2L);
+        Set<Trainer> trainersSet = new HashSet<>(Arrays.asList(trainer1, trainer2));
 
-        traineeService.deleteProfile(userId);
+        Method setTrainers = trainee.getClass().getDeclaredMethod("setTrainers", Set.class);
+        setTrainers.setAccessible(true);
+        setTrainers.invoke(trainee, trainersSet);
+        when(traineeRepository.findByUsername(username)).thenReturn(Optional.of(trainee));
 
-        verify(traineeDao, times(1)).deleteByUserId(userId);
-    }
+        traineeService.deleteProfile(username);
 
-    @Test
-    void testGetProfile() {
-        Long userId = 1L;
-        Trainee trainee = new Trainee();
-        when(traineeDao.findByUserId(userId)).thenReturn(trainee);
-
-        Trainee result = traineeService.getProfile(userId);
-
-        verify(traineeDao, times(1)).findByUserId(userId);
-        assertEquals(trainee, result, "getProfile should return the expected trainee");
-    }
-
-    @Test
-    void testGetAll() {
-        List<Trainee> trainees = Arrays.asList(new Trainee(), new Trainee());
-        when(traineeDao.findAll()).thenReturn(trainees);
-
-        List<Trainee> result = traineeService.getAll();
-
-        verify(traineeDao, times(1)).findAll();
-        assertEquals(trainees, result, "getAll should return all trainees");
+        for (Trainer trainer : trainersSet) {
+            if (trainer.getTrainees().isEmpty()) {
+                continue;
+            }
+            assertThat(trainer.getTrainees()).doesNotContain(trainee);
+        }
+        verify(traineeRepository, times(1)).delete(trainee);
     }
 }

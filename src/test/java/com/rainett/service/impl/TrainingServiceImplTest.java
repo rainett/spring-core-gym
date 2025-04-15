@@ -1,14 +1,23 @@
 package com.rainett.service.impl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.rainett.dao.TrainingDao;
+import com.rainett.dto.training.CreateTrainingRequest;
+import com.rainett.exceptions.ResourceNotFoundException;
+import com.rainett.mapper.TrainingMapper;
+import com.rainett.model.Trainee;
+import com.rainett.model.Trainer;
 import com.rainett.model.Training;
-import java.util.Arrays;
-import java.util.List;
+import com.rainett.model.TrainingType;
+import com.rainett.repository.TraineeRepository;
+import com.rainett.repository.TrainerRepository;
+import com.rainett.repository.TrainingRepository;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,42 +27,74 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class TrainingServiceImplTest {
     @Mock
-    private TrainingDao trainingDao;
+    private TrainingRepository trainingRepository;
+
+    @Mock
+    private TraineeRepository traineeRepository;
+
+    @Mock
+    private TrainerRepository trainerRepository;
+
+    @Mock
+    private TrainingMapper trainingMapper;
 
     @InjectMocks
     private TrainingServiceImpl trainingService;
 
-    @Test
-    void testCreateTraining() {
-        Training training = new Training();
-        when(trainingDao.save(training)).thenReturn(training);
+    private CreateTrainingRequest request;
+    private Training training;
+    private Trainee trainee;
+    private Trainer trainer;
+    private TrainingType specialization;
 
-        Training result = trainingService.createTraining(training);
-
-        verify(trainingDao, times(1)).save(training);
-        assertEquals(training, result, "The created training should match the saved training");
+    @BeforeEach
+    void setUp() {
+        request = new CreateTrainingRequest();
+        training = new Training();
+        trainee = new Trainee();
+        trainee.setId(1L);
+        trainer = new Trainer();
+        trainer.setId(2L);
+        specialization = new TrainingType();
+        trainer.setSpecialization(specialization);
     }
 
     @Test
-    void testGetTraining() {
-        Long id = 1L;
-        Training training = new Training();
-        when(trainingDao.findById(id)).thenReturn(training);
+    @DisplayName("Creates training")
+    void createTraining() {
+        when(trainingMapper.toEntity(request)).thenReturn(training);
+        when(traineeRepository.findByUsername(request.getTraineeUsername()))
+                .thenReturn(Optional.of(trainee));
+        when(trainerRepository.findByUsername(request.getTrainerUsername()))
+                .thenReturn(Optional.of(trainer));
 
-        Training result = trainingService.getTraining(id);
+        trainingService.createTraining(request);
 
-        verify(trainingDao, times(1)).findById(id);
-        assertEquals(training, result, "The retrieved training should match the expected training");
+        verify(trainingRepository, times(1)).save(training);
+        assertEquals(trainee, training.getTrainee());
+        assertEquals(trainer, training.getTrainer());
+        assertEquals(specialization, training.getTrainingType());
+    }
+    
+    @Test
+    @DisplayName("Throws exception when trainee not found")
+    void createTraining_traineeNotFound() {
+        when(trainingMapper.toEntity(request)).thenReturn(training);
+        when(traineeRepository.findByUsername(request.getTraineeUsername()))
+                .thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class,
+                () -> trainingService.createTraining(request));
     }
 
     @Test
-    void testGetAll() {
-        List<Training> trainings = Arrays.asList(new Training(), new Training());
-        when(trainingDao.findAll()).thenReturn(trainings);
-
-        List<Training> result = trainingService.getAll();
-
-        verify(trainingDao, times(1)).findAll();
-        assertEquals(trainings, result, "getAll should return all trainings");
+    @DisplayName("Throws exception when trainer not found")
+    void createTraining_trainerNotFound() {
+        when(trainingMapper.toEntity(request)).thenReturn(training);
+        when(traineeRepository.findByUsername(request.getTraineeUsername()))
+                .thenReturn(Optional.of(trainee));
+        when(trainerRepository.findByUsername(request.getTrainerUsername()))
+                .thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class,
+                () -> trainingService.createTraining(request));
     }
 }
