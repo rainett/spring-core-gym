@@ -1,18 +1,24 @@
 package com.rainett.service.impl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.rainett.model.Trainee;
-import com.rainett.model.Trainer;
+import com.rainett.dto.user.LoginRequest;
+import com.rainett.dto.user.UpdatePasswordRequest;
+import com.rainett.dto.user.UpdateUserActiveRequest;
+import com.rainett.exceptions.LoginException;
+import com.rainett.exceptions.ResourceNotFoundException;
 import com.rainett.model.User;
-import com.rainett.storage.DataStorage;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import com.rainett.repository.UserRepository;
+import com.rainett.service.AuthenticationService;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,48 +27,89 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
+    @Mock
+    private UserRepository userRepository;
 
     @Mock
-    private DataStorage<User> dataStorage;
+    private AuthenticationService authenticationService;
 
     @InjectMocks
     private UserServiceImpl userService;
 
     @Test
-    void testGenerateUniqueUsername_NoConflict() {
-        when(dataStorage.findAll(Trainer.class)).thenReturn(Collections.emptyList());
-        when(dataStorage.findAll(Trainee.class)).thenReturn(Collections.emptyList());
-
-        String username = userService.generateUniqueUsername("john", "doe");
-
-        assertEquals("john.doe", username, "Username should be generated as 'john.doe'");
-        verify(dataStorage, times(1)).findAll(Trainer.class);
-        verify(dataStorage, times(1)).findAll(Trainee.class);
+    @DisplayName("Logins user")
+    void testLogin() {
+        userService.login(new LoginRequest("username", "password"));
+        verify(authenticationService, times(1))
+                .authenticate(anyString(), anyString());
     }
 
     @Test
-    void testGenerateUniqueUsername_WithConflict() {
-        Trainer trainer = org.mockito.Mockito.mock(Trainer.class);
-        when(trainer.getUsername()).thenReturn("john.doe");
-
-        List<User> users = new ArrayList<>();
-        users.add(trainer);
-        when(dataStorage.findAll(Trainer.class)).thenReturn(users);
-        when(dataStorage.findAll(Trainee.class)).thenReturn(Collections.emptyList());
-
-        String username = userService.generateUniqueUsername("john", "doe");
-
-        assertEquals("john.doe.1", username,
-                "Username should be generated as 'john.doe.1' when conflict exists");
-        verify(dataStorage, times(2)).findAll(Trainer.class);
-        verify(dataStorage, times(2)).findAll(Trainee.class);
+    @DisplayName("Update password throws an exception when user not found")
+    void testUpdatePassword_throwsException_whenUserNotFound() {
+        UpdatePasswordRequest request = new UpdatePasswordRequest();
+        request.setNewPassword("newPassword");
+        User user = new User();
+        String initialPassword = "password";
+        user.setPassword(initialPassword);
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class,
+                () -> userService.updatePassword("", request));
+        assertEquals(initialPassword, user.getPassword());
     }
 
     @Test
-    void testGenerateRandomPassword() {
-        String password = userService.generateRandomPassword();
+    @DisplayName("Update password throws an exception when user not authenticated")
+    void testUpdatePassword_throwsException_whenUserNotAuthenticated() {
+        UpdatePasswordRequest request = new UpdatePasswordRequest();
+        request.setOldPassword("oldPassword");
+        request.setNewPassword("newPassword");
+        User user = new User();
+        String initialPassword = "password";
+        user.setPassword(initialPassword);
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+        doThrow(new LoginException()).when(authenticationService)
+                .authenticate(anyString(), anyString());
+        assertThrows(LoginException.class,
+                () -> userService.updatePassword("", request));
+        assertEquals(initialPassword, user.getPassword());
+    }
 
-        assertNotNull(password, "Generated password should not be null");
-        assertEquals(10, password.length(), "Password should be 10 characters long");
+    @Test
+    @DisplayName("Updates password successfully")
+    void testUpdatePassword_success() {
+        UpdatePasswordRequest request = new UpdatePasswordRequest();
+        request.setOldPassword("oldPassword");
+        request.setNewPassword("newPassword");
+        User user = new User();
+        String initialPassword = "password";
+        user.setPassword(initialPassword);
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+        doNothing().when(authenticationService).authenticate(anyString(), anyString());
+        userService.updatePassword("", request);
+        assertEquals(request.getNewPassword(), user.getPassword());
+    }
+
+    @Test
+    @DisplayName("Update status throws an exception when user not found")
+    void testUpdateStatus_throwsException_whenUserNotFound() {
+        UpdateUserActiveRequest request = new UpdateUserActiveRequest(true);
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class,
+                () -> userService.updateStatus("", request));
+    }
+
+    @Test
+    @DisplayName("Update status successfully")
+    void testUpdateStatus_success() {
+        UpdateUserActiveRequest request = new UpdateUserActiveRequest(true);
+        User user = new User();
+        user.setIsActive(false);
+        user.setActiveUpdatedAt(LocalDateTime.now());
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+        LocalDateTime beforeExecution = LocalDateTime.now();
+        userService.updateStatus("", request);
+        assertTrue(user.getIsActive());
+        assertTrue(user.getActiveUpdatedAt().isAfter(beforeExecution));
     }
 }

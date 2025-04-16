@@ -26,14 +26,14 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     @Transactional
-    public Training createTraining(CreateTrainingRequest request) {
+    public void createTraining(CreateTrainingRequest request) {
         Training training = trainingMapper.toEntity(request);
         Trainee trainee = getTrainee(request.getTraineeUsername());
         Trainer trainer = getTrainer(request.getTrainerUsername());
         training.setTrainee(trainee);
         training.setTrainer(trainer);
         training.setTrainingType(trainer.getSpecialization());
-        return trainingRepository.save(training);
+        trainingRepository.save(training);
     }
 
     private Trainee getTrainee(String traineeUsername) {

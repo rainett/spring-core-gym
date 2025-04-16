@@ -29,7 +29,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void updatePassword(String username, UpdatePasswordRequest request) {
         User user = getUser(username);
-        authenticationService.authenticate(user.getUsername(), request.getOldPassword());
+        authenticationService.authenticate(username, request.getOldPassword());
         user.setPassword(request.getNewPassword());
     }
 

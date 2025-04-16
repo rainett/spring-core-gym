@@ -9,6 +9,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.HashSet;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -38,10 +39,10 @@ public class Trainer extends User {
             inverseForeignKey = @ForeignKey(name = "trainee_trainer_fk")
     )
     @Setter(AccessLevel.PRIVATE)
-    private Set<Trainee> trainees;
+    private Set<Trainee> trainees = new HashSet<>();
 
     @ToString.Exclude
     @OneToMany(mappedBy = "trainer", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @Setter(AccessLevel.PRIVATE)
-    private Set<Training> trainings;
+    private Set<Training> trainings = new HashSet<>();
 }

@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorResponse> handleNoAuthInfoException(AuthenticationException ex) {
+    public ResponseEntity<ErrorResponse> handleAuthException(AuthenticationException ex) {
         return buildResponse(ex.getCode(), ex.getMessage());
     }
 
