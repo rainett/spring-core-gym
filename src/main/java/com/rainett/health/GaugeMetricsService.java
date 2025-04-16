@@ -1,6 +1,5 @@
 package com.rainett.health;
 
-import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.stereotype.Component;
@@ -16,9 +15,7 @@ public class GaugeMetricsService {
     }
 
     public void registerGauge() {
-        Gauge.builder("custom.active.users", activeUsers, AtomicInteger::get)
-                .description("The number of active users")
-                .register(meterRegistry);
+        meterRegistry.gauge("custom.active.users", activeUsers);
     }
 
     public int incrementActiveUsers() {
