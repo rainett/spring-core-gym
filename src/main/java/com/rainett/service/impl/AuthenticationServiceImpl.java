@@ -1,22 +1,22 @@
 package com.rainett.service.impl;
 
+import com.rainett.exceptions.LoginException;
 import com.rainett.repository.UserRepository;
 import com.rainett.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
-@Component
+@Service
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserRepository userRepository;
 
     @Override
-    public boolean match(String identity, String password) {
-        log.info("Matching identity {}", identity);
-        return userRepository.findByUsername(identity)
-                .map(user -> user.getPassword().equals(password))
-                .orElse(false);
+    @Transactional(readOnly = true)
+    public void authenticate(String username, String password) throws LoginException {
+        userRepository.findByUsername(username)
+                .filter(user -> user.getPassword().equals(password))
+                .orElseThrow(LoginException::new);
     }
 }

@@ -1,15 +1,12 @@
 package com.rainett.dto.training;
 
-import com.rainett.dto.AuthenticatedRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class CreateTrainingRequest extends AuthenticatedRequest {
+public class CreateTrainingRequest {
     @NotBlank
     private String traineeUsername;
 
@@ -18,9 +15,6 @@ public class CreateTrainingRequest extends AuthenticatedRequest {
 
     @NotBlank
     private String name;
-
-    @NotBlank
-    private String trainingType;
 
     @NotNull
     private LocalDate date;

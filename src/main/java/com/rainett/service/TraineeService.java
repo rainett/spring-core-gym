@@ -1,25 +1,31 @@
 package com.rainett.service;
 
-import com.rainett.dto.trainee.CreateTraineeProfileRequest;
-import com.rainett.dto.user.UpdateUserActiveRequest;
-import com.rainett.dto.user.UsernameRequest;
-import com.rainett.dto.user.UpdatePasswordRequest;
+import com.rainett.dto.trainee.CreateTraineeRequest;
+import com.rainett.dto.trainee.TraineeResponse;
+import com.rainett.dto.trainee.TrainerDto;
 import com.rainett.dto.trainee.UpdateTraineeRequest;
 import com.rainett.dto.trainee.UpdateTraineeTrainersRequest;
-import com.rainett.model.Trainee;
+import com.rainett.dto.user.UserCredentialsResponse;
+import com.rainett.dto.trainee.TraineeTrainingsResponse;
+import java.time.LocalDate;
+import java.util.List;
 
 public interface TraineeService {
-    Trainee createProfile(CreateTraineeProfileRequest request);
+    TraineeResponse findByUsername(String username);
 
-    Trainee findByUsername(UsernameRequest request);
+    List<TraineeTrainingsResponse> findTrainings(String username,
+                                                 LocalDate from,
+                                                 LocalDate to,
+                                                 String trainerUsername,
+                                                 String trainingType);
 
-    Trainee updatePassword(UpdatePasswordRequest request);
+    List<TrainerDto> findUnassignedTrainers(String username);
 
-    Trainee updateTrainee(UpdateTraineeRequest request);
+    UserCredentialsResponse createProfile(CreateTraineeRequest request);
 
-    Trainee setActiveStatus(UpdateUserActiveRequest request);
+    TraineeResponse updateTrainee(String username, UpdateTraineeRequest request);
 
-    void deleteProfile(UsernameRequest request);
+    List<TrainerDto> updateTrainers(String username, UpdateTraineeTrainersRequest request);
 
-    Trainee updateTrainers(UpdateTraineeTrainersRequest request);
+    void deleteProfile(String username);
 }

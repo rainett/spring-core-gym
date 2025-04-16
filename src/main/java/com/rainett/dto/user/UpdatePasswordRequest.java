@@ -1,19 +1,16 @@
 package com.rainett.dto.user;
 
-import com.rainett.dto.AuthenticatedRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class UpdatePasswordRequest extends AuthenticatedRequest {
+public class UpdatePasswordRequest {
     @NotBlank
-    private String username;
+    @ToString.Exclude
+    private String oldPassword;
 
-    @NotBlank
     @Size(min = 6)
     @ToString.Exclude
     private String newPassword;
