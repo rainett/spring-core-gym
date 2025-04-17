@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +35,7 @@ public class TraineeServiceImpl implements TraineeService {
     private final TrainerRepository trainerRepository;
     private final TraineeMapper traineeMapper;
     private final CredentialService credentialService;
+    private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
 
     @Override
@@ -72,11 +74,11 @@ public class TraineeServiceImpl implements TraineeService {
     @Transactional
     public UserCredentialsResponse createProfile(CreateTraineeRequest request) {
         Trainee trainee = traineeMapper.toEntity(request);
-        trainee.setIsActive(true);
         credentialService.createCredentials(trainee);
+        String password = trainee.getPassword();
+        trainee.setPassword(passwordEncoder.encode(trainee.getPassword()));
         trainee = traineeRepository.save(trainee);
         String username = trainee.getUsername();
-        String password = trainee.getPassword();
         String token = jwtUtils.generateToken(username);
         return new UserCredentialsResponse(username, password, token);
     }

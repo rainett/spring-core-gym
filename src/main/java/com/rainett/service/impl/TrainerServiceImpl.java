@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +36,7 @@ public class TrainerServiceImpl implements TrainerService {
     private final TrainingTypeRepository trainingTypeRepository;
     private final TrainerMapper trainerMapper;
     private final CredentialService credentialService;
+    private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
 
     @Override
@@ -63,9 +65,10 @@ public class TrainerServiceImpl implements TrainerService {
         TrainingType trainingType = getTrainingType(request.getSpecialization());
         trainer.setSpecialization(trainingType);
         credentialService.createCredentials(trainer);
+        String password = trainer.getPassword();
+        trainer.setPassword(passwordEncoder.encode(trainer.getPassword()));
         trainer = trainerRepository.save(trainer);
         String username = trainer.getUsername();
-        String password = trainer.getPassword();
         String token = jwtUtils.generateToken(username);
         return new UserCredentialsResponse(username, password, token);
     }
