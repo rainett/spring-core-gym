@@ -5,8 +5,10 @@ import com.rainett.dto.user.UpdatePasswordRequest;
 import com.rainett.dto.user.UpdateUserActiveRequest;
 import com.rainett.exceptions.LoginException;
 import com.rainett.exceptions.ResourceNotFoundException;
+import com.rainett.exceptions.TooManyLoginAttemptsException;
 import com.rainett.model.User;
 import com.rainett.repository.UserRepository;
+import com.rainett.service.BruteForceProtectionService;
 import com.rainett.service.UserService;
 import com.rainett.utils.JwtUtils;
 import java.time.LocalDateTime;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
+    private final BruteForceProtectionService bruteForceProtectionService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
@@ -46,9 +49,16 @@ public class UserServiceImpl implements UserService {
     }
 
     private void authenticate(String username, String password) {
+        if (bruteForceProtectionService.isBlocked(username)) {
+            throw new TooManyLoginAttemptsException();
+        }
         userRepository.findByUsername(username)
                 .filter(user -> passwordEncoder.matches(password, user.getPassword()))
-                .orElseThrow(LoginException::new);
+                .orElseThrow(() -> {
+                    bruteForceProtectionService.loginFailure(username);
+                    return new LoginException();
+                });
+        bruteForceProtectionService.loginSuccess(username);
     }
 
     private User getUser(String username) {

@@ -3,8 +3,8 @@ package com.rainett.controller;
 import com.rainett.annotations.Loggable;
 import com.rainett.dto.ErrorResponse;
 import com.rainett.exceptions.LoginException;
-import com.rainett.exceptions.AuthenticationException;
 import com.rainett.exceptions.ResourceNotFoundException;
+import com.rainett.exceptions.TooManyLoginAttemptsException;
 import jakarta.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
@@ -44,9 +44,9 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorResponse> handleAuthException(AuthenticationException ex) {
-        return buildResponse(ex.getCode(), ex.getMessage());
+    @ExceptionHandler(TooManyLoginAttemptsException.class)
+    public ResponseEntity<ErrorResponse> handleAuthException(TooManyLoginAttemptsException ex) {
+        return buildResponse(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -87,10 +87,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
-    }
-
-    private ResponseEntity<ErrorResponse> buildResponse(int code, String message) {
-        return buildResponse(HttpStatus.valueOf(code), message);
     }
 
     private ResponseEntity<ErrorResponse> buildResponse(HttpStatus status, String message) {
