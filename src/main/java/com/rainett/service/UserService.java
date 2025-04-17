@@ -10,4 +10,6 @@ public interface UserService {
     void updatePassword(String username, UpdatePasswordRequest request);
 
     void updateStatus(String username, UpdateUserActiveRequest request);
+
+    void logout(String asda);
 }

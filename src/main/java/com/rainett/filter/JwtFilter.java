@@ -4,6 +4,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rainett.dto.ErrorResponse;
+import com.rainett.dto.user.UserDto;
+import com.rainett.service.TokenBlacklistService;
 import com.rainett.utils.JwtUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -29,6 +31,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final ObjectMapper objectMapper;
     private final UserDetailsService userDetailsService;
     private final JwtUtils jwtUtils;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -39,6 +42,10 @@ public class JwtFilter extends OncePerRequestFilter {
             if (split.length == 2) {
                 String token = split[1];
                 try {
+                    if (tokenBlacklistService.isTokenRevoked(token)) {
+                        sendBackResponse("Token is revoked", response);
+                        return;
+                    }
                     authenticate(token);
                 } catch (IllegalArgumentException e) {
                     sendBackResponse(e.getMessage(), response);
@@ -51,8 +58,9 @@ public class JwtFilter extends OncePerRequestFilter {
     private void authenticate(String token) {
         String username = jwtUtils.validateTokenAndGetUsername(token);
         UserDetails user = userDetailsService.loadUserByUsername(username);
+        UserDto userDto = new UserDto(username, token);
         UsernamePasswordAuthenticationToken auth =
-                new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                new UsernamePasswordAuthenticationToken(userDto, null, user.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
 

@@ -9,6 +9,7 @@ import com.rainett.exceptions.TooManyLoginAttemptsException;
 import com.rainett.model.User;
 import com.rainett.repository.UserRepository;
 import com.rainett.service.BruteForceProtectionService;
+import com.rainett.service.TokenBlacklistService;
 import com.rainett.service.UserService;
 import com.rainett.utils.JwtUtils;
 import java.time.LocalDateTime;
@@ -24,6 +25,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     @Transactional(readOnly = true)
@@ -46,6 +48,12 @@ public class UserServiceImpl implements UserService {
         User user = getUser(username);
         user.setIsActive(request.getIsActive());
         user.setActiveUpdatedAt(LocalDateTime.now());
+    }
+
+    @Override
+    public void logout(String token) {
+        tokenBlacklistService.revokeToken(token);
+
     }
 
     private void authenticate(String username, String password) {
