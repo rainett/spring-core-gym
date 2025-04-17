@@ -2,10 +2,9 @@ package com.rainett.filter;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rainett.dto.ErrorResponse;
+import com.rainett.utils.JwtUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,7 +12,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -34,9 +32,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final ObjectMapper objectMapper;
     private final UserDetailsService userDetailsService;
-
-    @Value("${jwt.secret:super-secret-key}")
-    private String secretKey;
+    private final JwtUtils jwtUtils;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -53,7 +49,7 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     private void authenticate(String token) {
-        String username = JwtUtils.validateTokenAndGetUsername(token, secretKey);
+        String username = jwtUtils.validateTokenAndGetUsername(token);
         UserDetails user = userDetailsService.loadUserByUsername(username);
         UsernamePasswordAuthenticationToken auth =
                 new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
@@ -85,13 +81,5 @@ public class JwtFilter extends OncePerRequestFilter {
         ErrorResponse errorResponse = new ErrorResponse(LocalDateTime.now().toString(),
                 HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase(), message);
         response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
-    }
-
-    private static class JwtUtils {
-        public static String validateTokenAndGetUsername(String token, String secret) {
-            return JWT.require(Algorithm.HMAC256(secret)).build()
-                    .verify(token)
-                    .getIssuer();
-        }
     }
 }

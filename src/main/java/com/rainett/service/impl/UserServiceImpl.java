@@ -8,6 +8,7 @@ import com.rainett.model.User;
 import com.rainett.repository.UserRepository;
 import com.rainett.service.AuthenticationService;
 import com.rainett.service.UserService;
+import com.rainett.utils.JwtUtils;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,11 +19,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserServiceImpl implements UserService {
     private final AuthenticationService authenticationService;
     private final UserRepository userRepository;
+    private final JwtUtils jwtUtils;
 
     @Override
     @Transactional(readOnly = true)
-    public void login(LoginRequest request) {
+    public String login(LoginRequest request) {
         authenticationService.authenticate(request.getUsername(), request.getPassword());
+        return jwtUtils.generateToken(request.getUsername());
     }
 
     @Override

@@ -40,9 +40,9 @@ public class UserController {
             description = "Authenticates a user based on Basic Authorization"
     )
     @PostMapping("/login")
-    public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest request) {
-        userService.login(request);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<String> login(@Valid @RequestBody LoginRequest request) {
+        String token = userService.login(request);
+        return ResponseEntity.ok(token);
     }
 
     @ValidationResponse
