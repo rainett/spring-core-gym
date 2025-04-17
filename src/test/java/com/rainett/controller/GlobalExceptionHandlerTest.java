@@ -18,7 +18,10 @@ import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -33,7 +36,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-@WebMvcTest(GlobalExceptionHandlerTest.DummyController.class)
+@WebMvcTest(value = GlobalExceptionHandlerTest.DummyController.class,
+        excludeAutoConfiguration = SecurityAutoConfiguration.class)
 class GlobalExceptionHandlerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -105,7 +109,8 @@ class GlobalExceptionHandlerTest {
     @Test
     @DisplayName("Handles no handler found exception")
     void handleNoHandlerFoundException() throws Exception {
-        doThrow(new NoHandlerFoundException("GET", "/api/dummy", new HttpHeaders())).when(dummyController).empty();
+        doThrow(new NoHandlerFoundException("GET", "/api/dummy", new HttpHeaders())).when(
+                dummyController).empty();
         mockMvc.perform(get("/api/dummy"))
                 .andExpect(status().isNotFound());
     }
@@ -121,7 +126,8 @@ class GlobalExceptionHandlerTest {
     @Test
     @DisplayName("Handles no resource found exception")
     void handleNoResourceFoundException() throws Exception {
-        doThrow(new NoResourceFoundException(HttpMethod.GET, "/api/dummy")).when(dummyController).empty();
+        doThrow(new NoResourceFoundException(HttpMethod.GET, "/api/dummy")).when(dummyController)
+                .empty();
         mockMvc.perform(get("/api/dummy"))
                 .andExpect(status().isNotFound());
     }

@@ -25,12 +25,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(TraineeController.class)
+@WebMvcTest(value = TraineeController.class,
+        excludeAutoConfiguration = SecurityAutoConfiguration.class)
 class TraineeControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -81,7 +83,8 @@ class TraineeControllerTest {
     @Test
     @DisplayName("POST /api/trainees creates trainee")
     void createTrainee() throws Exception {
-        CreateTraineeRequest request = new CreateTraineeRequest("John", "Doe", LocalDate.now(), "123 Main St");
+        CreateTraineeRequest request =
+                new CreateTraineeRequest("John", "Doe", LocalDate.now(), "123 Main St");
         UserCredentialsResponse response = new UserCredentialsResponse("john.doe", "generatedPass");
         Mockito.when(traineeService.createProfile(any())).thenReturn(response);
 
@@ -95,8 +98,11 @@ class TraineeControllerTest {
     @Test
     @DisplayName("PUT /api/trainees/{username} updates trainee")
     void updateTrainee() throws Exception {
-        UpdateTraineeRequest request = new UpdateTraineeRequest("John", "Doe", true, LocalDate.now(), "123 Main St");
-        TraineeResponse response = new TraineeResponse("john", "John", "Doe", "2000-01-01", "123 Main St", true, List.of());
+        UpdateTraineeRequest request =
+                new UpdateTraineeRequest("John", "Doe", true, LocalDate.now(), "123 Main St");
+        TraineeResponse response =
+                new TraineeResponse("john", "John", "Doe", "2000-01-01", "123 Main St", true,
+                        List.of());
         Mockito.when(traineeService.updateTrainee(eq("john"), any())).thenReturn(response);
 
         mockMvc.perform(put("/api/trainees/john")
