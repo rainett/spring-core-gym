@@ -14,6 +14,7 @@ import com.rainett.repository.TrainerRepository;
 import com.rainett.repository.TrainingTypeRepository;
 import com.rainett.service.CredentialService;
 import com.rainett.service.TrainerService;
+import com.rainett.utils.JwtUtils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,6 +35,7 @@ public class TrainerServiceImpl implements TrainerService {
     private final TrainingTypeRepository trainingTypeRepository;
     private final TrainerMapper trainerMapper;
     private final CredentialService credentialService;
+    private final JwtUtils jwtUtils;
 
     @Override
     @Transactional(readOnly = true)
@@ -62,7 +64,10 @@ public class TrainerServiceImpl implements TrainerService {
         trainer.setSpecialization(trainingType);
         credentialService.createCredentials(trainer);
         trainer = trainerRepository.save(trainer);
-        return new UserCredentialsResponse(trainer.getUsername(), trainer.getPassword());
+        String username = trainer.getUsername();
+        String password = trainer.getPassword();
+        String token = jwtUtils.generateToken(username);
+        return new UserCredentialsResponse(username, password, token);
     }
 
     @Override

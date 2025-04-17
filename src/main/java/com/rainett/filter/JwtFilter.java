@@ -25,10 +25,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
     private static final String BEARER_PREFIX = "Bearer";
-    private static final String NO_HEADER_MSG = "Missing Authorization header";
-    private static final String NO_BEARER_MSG = "Expected Authorization header to start with '"
-                                                + BEARER_PREFIX + "'";
-    private static final String BAD_TOKEN_MSG = "Token is not properly formatted";
 
     private final ObjectMapper objectMapper;
     private final UserDetailsService userDetailsService;
@@ -38,12 +34,16 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        try {
-            String token = extractTokenFromHeader(header);
-            authenticate(token);
-        } catch (Exception ex) {
-            sendBackResponse(ex.getMessage(), response);
-            return;
+        if (header != null && header.startsWith(BEARER_PREFIX)) {
+            String[] split = header.split(" ");
+            if (split.length == 2) {
+                String token = split[1];
+                try {
+                    authenticate(token);
+                } catch (IllegalArgumentException e) {
+                    sendBackResponse(e.getMessage(), response);
+                }
+            }
         }
         filterChain.doFilter(request, response);
     }
@@ -54,24 +54,6 @@ public class JwtFilter extends OncePerRequestFilter {
         UsernamePasswordAuthenticationToken auth =
                 new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
-    }
-
-    private String extractTokenFromHeader(String header) {
-        validateHeader(header);
-        String[] split = header.split(" ");
-        if (split.length != 2 || !split[0].equals(BEARER_PREFIX)) {
-            throw new IllegalArgumentException(BAD_TOKEN_MSG);
-        }
-        return split[1];
-    }
-
-    private static void validateHeader(String header) {
-        if (header == null) {
-            throw new IllegalArgumentException(NO_HEADER_MSG);
-        }
-        if (!header.startsWith(BEARER_PREFIX)) {
-            throw new IllegalArgumentException(NO_BEARER_MSG);
-        }
     }
 
     private void sendBackResponse(String message, HttpServletResponse response)

@@ -15,6 +15,7 @@ import com.rainett.repository.TraineeRepository;
 import com.rainett.repository.TrainerRepository;
 import com.rainett.service.CredentialService;
 import com.rainett.service.TraineeService;
+import com.rainett.utils.JwtUtils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,6 +34,7 @@ public class TraineeServiceImpl implements TraineeService {
     private final TrainerRepository trainerRepository;
     private final TraineeMapper traineeMapper;
     private final CredentialService credentialService;
+    private final JwtUtils jwtUtils;
 
     @Override
     @Transactional(readOnly = true)
@@ -73,7 +75,10 @@ public class TraineeServiceImpl implements TraineeService {
         trainee.setIsActive(true);
         credentialService.createCredentials(trainee);
         trainee = traineeRepository.save(trainee);
-        return new UserCredentialsResponse(trainee.getUsername(), trainee.getPassword());
+        String username = trainee.getUsername();
+        String password = trainee.getPassword();
+        String token = jwtUtils.generateToken(username);
+        return new UserCredentialsResponse(username, password, token);
     }
 
     @Override

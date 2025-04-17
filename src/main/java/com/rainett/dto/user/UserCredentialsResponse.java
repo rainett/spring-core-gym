@@ -8,4 +8,5 @@ import lombok.Data;
 public class UserCredentialsResponse {
     private String username;
     private String password;
+    private String token;
 }
