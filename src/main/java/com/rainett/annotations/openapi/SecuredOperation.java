@@ -12,9 +12,6 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@ApiResponse(responseCode = "400", description = "Invalid auth header",
-        content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = ErrorResponse.class)))
 @ApiResponse(responseCode = "401", description = "Unauthorized",
         content = @Content(mediaType = "application/json",
                 schema = @Schema(implementation = ErrorResponse.class)))

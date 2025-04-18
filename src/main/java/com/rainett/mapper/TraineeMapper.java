@@ -8,14 +8,12 @@ import com.rainett.model.Trainee;
 import com.rainett.model.Trainer;
 import com.rainett.model.TrainingType;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface TraineeMapper {
     Trainee toEntity(CreateTraineeRequest request);
 
-    @Mapping(target = "username", ignore = true)
     void updateEntity(@MappingTarget Trainee trainee, UpdateTraineeRequest request);
 
     TraineeResponse toDto(Trainee trainee);

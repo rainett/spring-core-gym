@@ -1,7 +1,6 @@
 package com.rainett.controller;
 
-import com.rainett.annotations.Authenticated;
-import com.rainett.annotations.Loggable;
+import com.rainett.logging.Loggable;
 import com.rainett.annotations.openapi.OkResponse;
 import com.rainett.annotations.openapi.SecuredOperation;
 import com.rainett.dto.trainingtype.TrainingTypeResponse;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Training Types API", description = "Endpoints for managing training types")
 @Loggable
-@Authenticated
 @RestController
 @RequestMapping("/api/training-types")
 @RequiredArgsConstructor

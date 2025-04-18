@@ -21,7 +21,7 @@ import com.rainett.model.Trainee;
 import com.rainett.model.Trainer;
 import com.rainett.repository.TraineeRepository;
 import com.rainett.repository.TrainerRepository;
-import com.rainett.service.CredentialService;
+import com.rainett.service.ProfileCreationService;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.LocalDate;
@@ -49,7 +49,7 @@ class TraineeServiceImplTest {
     private TraineeMapper traineeMapper;
 
     @Mock
-    private CredentialService credentialService;
+    private ProfileCreationService<Trainee> profileCreationService;
 
     @InjectMocks
     private TraineeServiceImpl traineeService;
@@ -153,10 +153,10 @@ class TraineeServiceImplTest {
     void createProfile_shouldCreateProfileAndReturnUserCredentials() {
         CreateTraineeRequest request = new CreateTraineeRequest();
         when(traineeMapper.toEntity(request)).thenReturn(trainee);
-        when(traineeRepository.save(trainee)).thenReturn(trainee);
+        when(profileCreationService.createProfile(trainee, traineeRepository))
+                .thenReturn(new UserCredentialsResponse(username, "password", "token"));
 
         UserCredentialsResponse result = traineeService.createProfile(request);
-        verify(credentialService, times(1)).createCredentials(trainee);
         assertThat(result.getUsername()).isEqualTo(username);
         assertThat(result.getPassword()).isEqualTo("password");
     }

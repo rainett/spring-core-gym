@@ -1,7 +1,5 @@
 package com.rainett.controller;
 
-import com.rainett.annotations.Authenticated;
-import com.rainett.annotations.Loggable;
 import com.rainett.annotations.openapi.CreatedResponse;
 import com.rainett.annotations.openapi.DeletedResponse;
 import com.rainett.annotations.openapi.NotFoundResponse;
@@ -15,6 +13,7 @@ import com.rainett.dto.trainee.TrainerDto;
 import com.rainett.dto.trainee.UpdateTraineeRequest;
 import com.rainett.dto.trainee.UpdateTraineeTrainersRequest;
 import com.rainett.dto.user.UserCredentialsResponse;
+import com.rainett.logging.Loggable;
 import com.rainett.service.TraineeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -39,7 +38,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Trainee API", description = "Endpoints for managing trainees")
 @Loggable
-@Authenticated
 @RestController
 @RequestMapping("/api/trainees")
 @RequiredArgsConstructor
@@ -117,7 +115,6 @@ public class TraineeController {
             description = "Creates a new trainee"
     )
     @PostMapping
-    @Authenticated(ignore = true)
     public ResponseEntity<UserCredentialsResponse> createTrainee(
             @Valid @RequestBody CreateTraineeRequest request) {
         UserCredentialsResponse userCredentialsResponse = traineeService.createProfile(request);

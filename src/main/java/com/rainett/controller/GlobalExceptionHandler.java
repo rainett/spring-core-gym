@@ -1,10 +1,10 @@
 package com.rainett.controller;
 
-import com.rainett.annotations.Loggable;
+import com.rainett.logging.Loggable;
 import com.rainett.dto.ErrorResponse;
 import com.rainett.exceptions.LoginException;
-import com.rainett.exceptions.AuthenticationException;
 import com.rainett.exceptions.ResourceNotFoundException;
+import com.rainett.exceptions.TooManyLoginAttemptsException;
 import jakarta.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
@@ -23,7 +23,8 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ErrorResponse> handleValidationErrors(
+            MethodArgumentNotValidException ex) {
         String message = ex.getBindingResult().getFieldErrors().stream()
                 .map(err -> err.getField() + ": " + err.getDefaultMessage())
                 .collect(Collectors.joining("; "));
@@ -31,7 +32,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(
+            ConstraintViolationException ex) {
         String message = ex.getConstraintViolations().stream()
                 .map(cv -> cv.getPropertyPath() + ": " + cv.getMessage())
                 .findFirst()
@@ -44,9 +46,10 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorResponse> handleAuthException(AuthenticationException ex) {
-        return buildResponse(ex.getCode(), ex.getMessage());
+    @ExceptionHandler(TooManyLoginAttemptsException.class)
+    public ResponseEntity<ErrorResponse> handleTooManyLoginAttemptsException(
+            TooManyLoginAttemptsException ex) {
+        return buildResponse(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -60,7 +63,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<ErrorResponse> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+    public ResponseEntity<ErrorResponse> handleMethodNotSupported(
+            HttpRequestMethodNotSupportedException ex) {
         return buildResponse(HttpStatus.METHOD_NOT_ALLOWED, ex.getMessage());
     }
 
@@ -70,7 +74,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
-    public ResponseEntity<ErrorResponse> handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
+    public ResponseEntity<ErrorResponse> handleMediaTypeNotSupported(
+            HttpMediaTypeNotSupportedException ex) {
         return buildResponse(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ex.getMessage());
     }
 
@@ -87,10 +92,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
-    }
-
-    private ResponseEntity<ErrorResponse> buildResponse(int code, String message) {
-        return buildResponse(HttpStatus.valueOf(code), message);
     }
 
     private ResponseEntity<ErrorResponse> buildResponse(HttpStatus status, String message) {

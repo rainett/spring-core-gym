@@ -12,7 +12,7 @@ import com.rainett.model.TrainingType;
 import com.rainett.repository.TraineeRepository;
 import com.rainett.repository.TrainerRepository;
 import com.rainett.repository.TrainingTypeRepository;
-import com.rainett.service.CredentialService;
+import com.rainett.service.ProfileCreationService;
 import com.rainett.service.TrainerService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,7 +33,7 @@ public class TrainerServiceImpl implements TrainerService {
     private final TraineeRepository traineeRepository;
     private final TrainingTypeRepository trainingTypeRepository;
     private final TrainerMapper trainerMapper;
-    private final CredentialService credentialService;
+    private final ProfileCreationService<Trainer> profileCreationService;
 
     @Override
     @Transactional(readOnly = true)
@@ -60,9 +60,7 @@ public class TrainerServiceImpl implements TrainerService {
         Trainer trainer = trainerMapper.toEntity(request);
         TrainingType trainingType = getTrainingType(request.getSpecialization());
         trainer.setSpecialization(trainingType);
-        credentialService.createCredentials(trainer);
-        trainer = trainerRepository.save(trainer);
-        return new UserCredentialsResponse(trainer.getUsername(), trainer.getPassword());
+        return profileCreationService.createProfile(trainer, trainerRepository);
     }
 
     @Override

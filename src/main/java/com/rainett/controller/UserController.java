@@ -1,20 +1,24 @@
 package com.rainett.controller;
 
-import com.rainett.annotations.Authenticated;
-import com.rainett.annotations.Loggable;
 import com.rainett.annotations.openapi.NotFoundResponse;
 import com.rainett.annotations.openapi.OkResponse;
 import com.rainett.annotations.openapi.SecuredOperation;
 import com.rainett.annotations.openapi.ValidationResponse;
 import com.rainett.dto.user.LoginRequest;
+import com.rainett.dto.user.LoginResponse;
 import com.rainett.dto.user.UpdatePasswordRequest;
 import com.rainett.dto.user.UpdateUserActiveRequest;
+import com.rainett.logging.Loggable;
+import com.rainett.security.TokenUserDto;
 import com.rainett.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,7 +29,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "User API", description = "Endpoints for managing users")
 @Loggable
-@Authenticated
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -34,14 +37,29 @@ public class UserController {
 
     @ValidationResponse
     @SecuredOperation
-    @OkResponse(description = "User logged in successfully")
+    @OkResponse(description = "User logged in successfully",
+            content = @Content(mediaType = "application/json", schema =
+            @Schema(implementation = LoginResponse.class)))
     @Operation(
             summary = "User Login",
             description = "Authenticates a user based on Basic Authorization"
     )
     @PostMapping("/login")
-    public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest request) {
-        userService.login(request);
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        String token = userService.login(request);
+        return ResponseEntity.ok(new LoginResponse(token));
+    }
+
+    @ValidationResponse
+    @SecuredOperation
+    @OkResponse(description = "User logged out successfully")
+    @Operation(
+            summary = "User Log Out",
+            description = "Authenticates a user based on Basic Authorization"
+    )
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@AuthenticationPrincipal TokenUserDto user) {
+        userService.logout(user.getToken());
         return ResponseEntity.ok().build();
     }
 
