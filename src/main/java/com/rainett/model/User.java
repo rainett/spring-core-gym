@@ -1,16 +1,25 @@
 package com.rainett.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -50,6 +59,15 @@ public class User {
 
     @Column(nullable = false)
     private LocalDateTime activeUpdatedAt = LocalDateTime.now();
+
+    @Enumerated(EnumType.STRING)
+    @ElementCollection(targetClass = Authority.class, fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "users_authorities",
+            joinColumns = @JoinColumn(name = "user_id"),
+            foreignKey = @ForeignKey(name = "user_authority_fk")
+    )
+    private Set<Authority> authorities = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {

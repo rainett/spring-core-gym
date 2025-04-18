@@ -20,7 +20,7 @@ import com.rainett.model.TrainingType;
 import com.rainett.repository.TraineeRepository;
 import com.rainett.repository.TrainerRepository;
 import com.rainett.repository.TrainingTypeRepository;
-import com.rainett.service.CredentialService;
+import com.rainett.service.CredentialsGenerationService;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -46,7 +46,7 @@ class TrainerServiceImplTest {
     private TrainerMapper trainerMapper;
 
     @Mock
-    private CredentialService credentialService;
+    private CredentialsGenerationService credentialsGenerationService;
 
     @InjectMocks
     private TrainerServiceImpl trainerService;
@@ -134,7 +134,7 @@ class TrainerServiceImplTest {
 
         UserCredentialsResponse response = trainerService.createProfile(request);
 
-        verify(credentialService, times(1)).createCredentials(trainer);
+        verify(credentialsGenerationService, times(1)).createCredentials(trainer);
         assertThat(response.getUsername()).isEqualTo(username);
         assertThat(response.getPassword()).isEqualTo(trainer.getPassword());
     }

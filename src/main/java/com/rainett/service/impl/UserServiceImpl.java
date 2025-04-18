@@ -8,10 +8,10 @@ import com.rainett.exceptions.ResourceNotFoundException;
 import com.rainett.exceptions.TooManyLoginAttemptsException;
 import com.rainett.model.User;
 import com.rainett.repository.UserRepository;
-import com.rainett.service.BruteForceProtectionService;
-import com.rainett.service.TokenBlacklistService;
+import com.rainett.security.service.JwtService;
+import com.rainett.security.service.BruteForceProtectionService;
+import com.rainett.security.service.TokenBlacklistService;
 import com.rainett.service.UserService;
-import com.rainett.utils.JwtUtils;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,14 +24,14 @@ public class UserServiceImpl implements UserService {
     private final BruteForceProtectionService bruteForceProtectionService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtils jwtUtils;
+    private final JwtService jwtService;
     private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     @Transactional(readOnly = true)
     public String login(LoginRequest request) {
-        authenticate(request.getUsername(), request.getPassword());
-        return jwtUtils.generateToken(request.getUsername());
+        User user = authenticate(request.getUsername(), request.getPassword());
+        return jwtService.generateToken(user);
     }
 
     @Override
@@ -53,20 +53,20 @@ public class UserServiceImpl implements UserService {
     @Override
     public void logout(String token) {
         tokenBlacklistService.revokeToken(token);
-
     }
 
-    private void authenticate(String username, String password) {
-        if (bruteForceProtectionService.isBlocked(username)) {
+    private User authenticate(String username, String password) {
+        if (bruteForceProtectionService.isBlocked()) {
             throw new TooManyLoginAttemptsException();
         }
-        userRepository.findByUsername(username)
-                .filter(user -> passwordEncoder.matches(password, user.getPassword()))
+        User user = userRepository.findByUsername(username)
+                .filter(u -> passwordEncoder.matches(password, u.getPassword()))
                 .orElseThrow(() -> {
-                    bruteForceProtectionService.loginFailure(username);
+                    bruteForceProtectionService.loginFailure();
                     return new LoginException();
                 });
-        bruteForceProtectionService.loginSuccess(username);
+        bruteForceProtectionService.loginSuccess();
+        return user;
     }
 
     private User getUser(String username) {

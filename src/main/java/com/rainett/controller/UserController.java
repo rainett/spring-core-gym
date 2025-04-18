@@ -1,7 +1,6 @@
 package com.rainett.controller;
 
-import com.rainett.annotations.Authenticated;
-import com.rainett.annotations.Loggable;
+import com.rainett.logging.Loggable;
 import com.rainett.annotations.openapi.NotFoundResponse;
 import com.rainett.annotations.openapi.OkResponse;
 import com.rainett.annotations.openapi.SecuredOperation;
@@ -9,11 +8,12 @@ import com.rainett.annotations.openapi.ValidationResponse;
 import com.rainett.dto.user.LoginRequest;
 import com.rainett.dto.user.UpdatePasswordRequest;
 import com.rainett.dto.user.UpdateUserActiveRequest;
-import com.rainett.dto.user.UserDto;
+import com.rainett.security.TokenUserDto;
 import com.rainett.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "User API", description = "Endpoints for managing users")
 @Loggable
-@Authenticated
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -42,9 +41,9 @@ public class UserController {
             description = "Authenticates a user based on Basic Authorization"
     )
     @PostMapping("/login")
-    public ResponseEntity<String> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<Map<String, String>> login(@Valid @RequestBody LoginRequest request) {
         String token = userService.login(request);
-        return ResponseEntity.ok(token);
+        return ResponseEntity.ok(Map.of("token", token));
     }
 
     @ValidationResponse
@@ -55,7 +54,7 @@ public class UserController {
             description = "Authenticates a user based on Basic Authorization"
     )
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@AuthenticationPrincipal UserDto user) {
+    public ResponseEntity<Void> logout(@AuthenticationPrincipal TokenUserDto user) {
         userService.logout(user.getToken());
         return ResponseEntity.ok().build();
     }

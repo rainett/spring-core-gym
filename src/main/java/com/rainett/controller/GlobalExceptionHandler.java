@@ -1,6 +1,6 @@
 package com.rainett.controller;
 
-import com.rainett.annotations.Loggable;
+import com.rainett.logging.Loggable;
 import com.rainett.dto.ErrorResponse;
 import com.rainett.exceptions.LoginException;
 import com.rainett.exceptions.ResourceNotFoundException;

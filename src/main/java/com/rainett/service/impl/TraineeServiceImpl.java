@@ -2,8 +2,8 @@ package com.rainett.service.impl;
 
 import com.rainett.dto.trainee.CreateTraineeRequest;
 import com.rainett.dto.trainee.TraineeResponse;
-import com.rainett.dto.trainee.TrainerDto;
 import com.rainett.dto.trainee.TraineeTrainingsResponse;
+import com.rainett.dto.trainee.TrainerDto;
 import com.rainett.dto.trainee.UpdateTraineeRequest;
 import com.rainett.dto.trainee.UpdateTraineeTrainersRequest;
 import com.rainett.dto.user.UserCredentialsResponse;
@@ -13,15 +13,13 @@ import com.rainett.model.Trainee;
 import com.rainett.model.Trainer;
 import com.rainett.repository.TraineeRepository;
 import com.rainett.repository.TrainerRepository;
-import com.rainett.service.CredentialService;
+import com.rainett.service.ProfileCreationService;
 import com.rainett.service.TraineeService;
-import com.rainett.utils.JwtUtils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,9 +32,7 @@ public class TraineeServiceImpl implements TraineeService {
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
     private final TraineeMapper traineeMapper;
-    private final CredentialService credentialService;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtUtils jwtUtils;
+    private final ProfileCreationService<Trainee> profileCreationService;
 
     @Override
     @Transactional(readOnly = true)
@@ -74,13 +70,7 @@ public class TraineeServiceImpl implements TraineeService {
     @Transactional
     public UserCredentialsResponse createProfile(CreateTraineeRequest request) {
         Trainee trainee = traineeMapper.toEntity(request);
-        credentialService.createCredentials(trainee);
-        String password = trainee.getPassword();
-        trainee.setPassword(passwordEncoder.encode(trainee.getPassword()));
-        trainee = traineeRepository.save(trainee);
-        String username = trainee.getUsername();
-        String token = jwtUtils.generateToken(username);
-        return new UserCredentialsResponse(username, password, token);
+        return profileCreationService.createProfile(trainee, traineeRepository);
     }
 
     @Override

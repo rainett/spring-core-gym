@@ -12,16 +12,14 @@ import com.rainett.model.TrainingType;
 import com.rainett.repository.TraineeRepository;
 import com.rainett.repository.TrainerRepository;
 import com.rainett.repository.TrainingTypeRepository;
-import com.rainett.service.CredentialService;
+import com.rainett.service.ProfileCreationService;
 import com.rainett.service.TrainerService;
-import com.rainett.utils.JwtUtils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,9 +33,7 @@ public class TrainerServiceImpl implements TrainerService {
     private final TraineeRepository traineeRepository;
     private final TrainingTypeRepository trainingTypeRepository;
     private final TrainerMapper trainerMapper;
-    private final CredentialService credentialService;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtUtils jwtUtils;
+    private final ProfileCreationService<Trainer> profileCreationService;
 
     @Override
     @Transactional(readOnly = true)
@@ -64,13 +60,7 @@ public class TrainerServiceImpl implements TrainerService {
         Trainer trainer = trainerMapper.toEntity(request);
         TrainingType trainingType = getTrainingType(request.getSpecialization());
         trainer.setSpecialization(trainingType);
-        credentialService.createCredentials(trainer);
-        String password = trainer.getPassword();
-        trainer.setPassword(passwordEncoder.encode(trainer.getPassword()));
-        trainer = trainerRepository.save(trainer);
-        String username = trainer.getUsername();
-        String token = jwtUtils.generateToken(username);
-        return new UserCredentialsResponse(username, password, token);
+        return profileCreationService.createProfile(trainer, trainerRepository);
     }
 
     @Override

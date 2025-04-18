@@ -1,7 +1,6 @@
 package com.rainett.controller;
 
-import com.rainett.annotations.Authenticated;
-import com.rainett.annotations.Loggable;
+import com.rainett.logging.Loggable;
 import com.rainett.annotations.openapi.CreatedResponse;
 import com.rainett.annotations.openapi.NotFoundResponse;
 import com.rainett.annotations.openapi.OkResponse;
@@ -35,7 +34,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Trainer API", description = "Endpoints for managing trainers")
 @Loggable
-@Authenticated
 @RestController
 @RequestMapping("/api/trainers")
 @RequiredArgsConstructor
@@ -93,7 +91,6 @@ public class TrainerController {
             description = "Creates a new trainer"
     )
     @PostMapping
-    @Authenticated(ignore = true)
     public ResponseEntity<UserCredentialsResponse> createTrainer(
             @Valid @RequestBody CreateTrainerRequest request) {
         UserCredentialsResponse userCredentialsResponse = trainerService.createProfile(request);
