@@ -1,19 +1,21 @@
 package com.rainett.controller;
 
-import com.rainett.logging.Loggable;
 import com.rainett.annotations.openapi.NotFoundResponse;
 import com.rainett.annotations.openapi.OkResponse;
 import com.rainett.annotations.openapi.SecuredOperation;
 import com.rainett.annotations.openapi.ValidationResponse;
 import com.rainett.dto.user.LoginRequest;
+import com.rainett.dto.user.LoginResponse;
 import com.rainett.dto.user.UpdatePasswordRequest;
 import com.rainett.dto.user.UpdateUserActiveRequest;
+import com.rainett.logging.Loggable;
 import com.rainett.security.TokenUserDto;
 import com.rainett.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -35,15 +37,17 @@ public class UserController {
 
     @ValidationResponse
     @SecuredOperation
-    @OkResponse(description = "User logged in successfully")
+    @OkResponse(description = "User logged in successfully",
+            content = @Content(mediaType = "application/json", schema =
+            @Schema(implementation = LoginResponse.class)))
     @Operation(
             summary = "User Login",
             description = "Authenticates a user based on Basic Authorization"
     )
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         String token = userService.login(request);
-        return ResponseEntity.ok(Map.of("token", token));
+        return ResponseEntity.ok(new LoginResponse(token));
     }
 
     @ValidationResponse

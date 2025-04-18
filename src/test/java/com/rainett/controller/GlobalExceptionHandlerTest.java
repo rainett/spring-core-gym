@@ -7,6 +7,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rainett.exceptions.LoginException;
 import com.rainett.exceptions.ResourceNotFoundException;
+import com.rainett.exceptions.TooManyLoginAttemptsException;
+import com.rainett.security.JwtFilter;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -14,15 +16,21 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -33,8 +41,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+@Import(GlobalExceptionHandlerTest.DummyController.class)
 @WebMvcTest(value = GlobalExceptionHandlerTest.DummyController.class,
-        excludeAutoConfiguration = SecurityAutoConfiguration.class)
+        excludeAutoConfiguration = SecurityAutoConfiguration.class,
+        excludeFilters =
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = JwtFilter.class))
 class GlobalExceptionHandlerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -42,8 +53,11 @@ class GlobalExceptionHandlerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockitoBean
+    @InjectMocks
     private DummyController dummyController;
+
+    @MockitoBean
+    private DummyService dummyService;
 
     @Test
     @DisplayName("Handles validation errors")
@@ -58,7 +72,7 @@ class GlobalExceptionHandlerTest {
     @Test
     @DisplayName("Handles constraint violations")
     void handlesConstraintViolations() throws Exception {
-        doThrow(new ConstraintViolationException("", Set.of())).when(dummyController).empty();
+        doThrow(new ConstraintViolationException("", Set.of())).when(dummyService).empty();
         mockMvc.perform(get("/api/dummy"))
                 .andExpect(status().isBadRequest());
     }
@@ -66,23 +80,23 @@ class GlobalExceptionHandlerTest {
     @Test
     @DisplayName("Handles login exception")
     void handleLoginException() throws Exception {
-        doThrow(new LoginException()).when(dummyController).empty();
+        doThrow(new LoginException()).when(dummyService).empty();
         mockMvc.perform(get("/api/dummy"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
-    @DisplayName("Handles authentication exception")
-    void handleAuthException() throws Exception {
-        doThrow(new AuthenticationException(500, "Error")).when(dummyController).empty();
+    @DisplayName("Handles too many login attempts exception")
+    void handleTooManyLoginAttemptsException() throws Exception {
+        doThrow(new TooManyLoginAttemptsException()).when(dummyService).empty();
         mockMvc.perform(get("/api/dummy"))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isTooManyRequests());
     }
 
     @Test
     @DisplayName("Handles entity not found exception")
     void handleEntityNotFoundException() throws Exception {
-        doThrow(new ResourceNotFoundException("Error")).when(dummyController).empty();
+        doThrow(new ResourceNotFoundException("Error")).when(dummyService).empty();
         mockMvc.perform(get("/api/dummy"))
                 .andExpect(status().isNotFound());
     }
@@ -90,7 +104,7 @@ class GlobalExceptionHandlerTest {
     @Test
     @DisplayName("Handles data integrity exception")
     void handleDataIntegrityException() throws Exception {
-        doThrow(new DataIntegrityViolationException("Error")).when(dummyController).empty();
+        doThrow(new DataIntegrityViolationException("Error")).when(dummyService).empty();
         mockMvc.perform(get("/api/dummy"))
                 .andExpect(status().isConflict());
     }
@@ -98,7 +112,7 @@ class GlobalExceptionHandlerTest {
     @Test
     @DisplayName("Handles method not supported exception")
     void handleMethodNotSupportedException() throws Exception {
-        doThrow(new HttpRequestMethodNotSupportedException("Error")).when(dummyController).empty();
+        doThrow(new HttpRequestMethodNotSupportedException("Error")).when(dummyService).empty();
         mockMvc.perform(get("/api/dummy"))
                 .andExpect(status().isMethodNotAllowed());
     }
@@ -107,7 +121,7 @@ class GlobalExceptionHandlerTest {
     @DisplayName("Handles no handler found exception")
     void handleNoHandlerFoundException() throws Exception {
         doThrow(new NoHandlerFoundException("GET", "/api/dummy", new HttpHeaders())).when(
-                dummyController).empty();
+                dummyService).empty();
         mockMvc.perform(get("/api/dummy"))
                 .andExpect(status().isNotFound());
     }
@@ -115,7 +129,7 @@ class GlobalExceptionHandlerTest {
     @Test
     @DisplayName("Handles media type not supported exception")
     void handleMediaTypeNotSupportedException() throws Exception {
-        doThrow(new HttpMediaTypeNotSupportedException("Error")).when(dummyController).empty();
+        doThrow(new HttpMediaTypeNotSupportedException("Error")).when(dummyService).empty();
         mockMvc.perform(get("/api/dummy"))
                 .andExpect(status().isUnsupportedMediaType());
     }
@@ -123,7 +137,7 @@ class GlobalExceptionHandlerTest {
     @Test
     @DisplayName("Handles no resource found exception")
     void handleNoResourceFoundException() throws Exception {
-        doThrow(new NoResourceFoundException(HttpMethod.GET, "/api/dummy")).when(dummyController)
+        doThrow(new NoResourceFoundException(HttpMethod.GET, "/api/dummy")).when(dummyService)
                 .empty();
         mockMvc.perform(get("/api/dummy"))
                 .andExpect(status().isNotFound());
@@ -132,7 +146,7 @@ class GlobalExceptionHandlerTest {
     @Test
     @DisplayName("Handles illegal argument exception")
     void handleIllegalArgumentException() throws Exception {
-        doThrow(new IllegalArgumentException()).when(dummyController).empty();
+        doThrow(new IllegalArgumentException()).when(dummyService).empty();
         mockMvc.perform(get("/api/dummy"))
                 .andExpect(status().isBadRequest());
     }
@@ -140,14 +154,17 @@ class GlobalExceptionHandlerTest {
     @Test
     @DisplayName("Handles internal server error")
     void handleInternalServerError() throws Exception {
-        doThrow(new Exception()).when(dummyController).empty();
+        doThrow(new Exception()).when(dummyService).empty();
         mockMvc.perform(get("/api/dummy"))
                 .andExpect(status().isInternalServerError());
     }
 
     @RestController
     @RequestMapping("/api/dummy")
+    @RequiredArgsConstructor
     static class DummyController {
+        private final DummyService dummyService;
+
         @GetMapping("/valid")
         public void valid(@Valid CustomDto dto) {
             // validated endpoint
@@ -155,7 +172,14 @@ class GlobalExceptionHandlerTest {
 
         @GetMapping
         public void empty() throws Exception {
-            // empty endpoint
+            dummyService.empty();
+        }
+    }
+
+    @Service
+    static class DummyService {
+        public void empty() throws Exception {
+            // empty method
         }
     }
 

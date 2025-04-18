@@ -15,6 +15,7 @@ import com.rainett.dto.trainer.TrainerResponse;
 import com.rainett.dto.trainer.TrainerTrainingResponse;
 import com.rainett.dto.trainer.UpdateTrainerRequest;
 import com.rainett.dto.user.UserCredentialsResponse;
+import com.rainett.security.JwtFilter;
 import com.rainett.service.TrainerService;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -22,12 +23,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(value = TrainerController.class,
-        excludeAutoConfiguration = SecurityAutoConfiguration.class)
+        excludeAutoConfiguration = SecurityAutoConfiguration.class,
+        excludeFilters =
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = JwtFilter.class))
 class TrainerControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -65,7 +70,8 @@ class TrainerControllerTest {
     @DisplayName("POST /api/trainers creates trainer")
     void createTrainer() throws Exception {
         CreateTrainerRequest request = new CreateTrainerRequest("John", "Doe", "Boxing");
-        UserCredentialsResponse response = new UserCredentialsResponse("john.doe", "generatedPass");
+        UserCredentialsResponse response =
+                new UserCredentialsResponse("john.doe", "generatedPass", "token");
         when(trainerService.createProfile(request)).thenReturn(response);
 
         mockMvc.perform(post("/api/trainers")

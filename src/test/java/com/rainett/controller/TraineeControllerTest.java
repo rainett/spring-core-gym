@@ -18,6 +18,7 @@ import com.rainett.dto.trainee.TrainerDto;
 import com.rainett.dto.trainee.UpdateTraineeRequest;
 import com.rainett.dto.trainee.UpdateTraineeTrainersRequest;
 import com.rainett.dto.user.UserCredentialsResponse;
+import com.rainett.security.JwtFilter;
 import com.rainett.service.TraineeService;
 import java.time.LocalDate;
 import java.util.List;
@@ -27,12 +28,16 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(value = TraineeController.class,
-        excludeAutoConfiguration = SecurityAutoConfiguration.class)
+        excludeAutoConfiguration = SecurityAutoConfiguration.class,
+        excludeFilters =
+        @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = JwtFilter.class))
 class TraineeControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -85,7 +90,8 @@ class TraineeControllerTest {
     void createTrainee() throws Exception {
         CreateTraineeRequest request =
                 new CreateTraineeRequest("John", "Doe", LocalDate.now(), "123 Main St");
-        UserCredentialsResponse response = new UserCredentialsResponse("john.doe", "generatedPass");
+        UserCredentialsResponse response =
+                new UserCredentialsResponse("john.doe", "generatedPass", "token");
         Mockito.when(traineeService.createProfile(any())).thenReturn(response);
 
         mockMvc.perform(post("/api/trainees")

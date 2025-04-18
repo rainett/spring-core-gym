@@ -20,7 +20,7 @@ import com.rainett.model.TrainingType;
 import com.rainett.repository.TraineeRepository;
 import com.rainett.repository.TrainerRepository;
 import com.rainett.repository.TrainingTypeRepository;
-import com.rainett.service.CredentialsGenerationService;
+import com.rainett.service.ProfileCreationService;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -46,7 +46,7 @@ class TrainerServiceImplTest {
     private TrainerMapper trainerMapper;
 
     @Mock
-    private CredentialsGenerationService credentialsGenerationService;
+    private ProfileCreationService<Trainer> profileCreationService;
 
     @InjectMocks
     private TrainerServiceImpl trainerService;
@@ -130,11 +130,11 @@ class TrainerServiceImplTest {
         when(trainerMapper.toEntity(request)).thenReturn(trainer);
         when(trainingTypeRepository.findByName(specializationName)).thenReturn(Optional.of(
                 trainingType));
-        when(trainerRepository.save(trainer)).thenReturn(trainer);
+        when(profileCreationService.createProfile(trainer, trainerRepository))
+                .thenReturn(new UserCredentialsResponse(username, trainer.getPassword(), "token"));
 
         UserCredentialsResponse response = trainerService.createProfile(request);
 
-        verify(credentialsGenerationService, times(1)).createCredentials(trainer);
         assertThat(response.getUsername()).isEqualTo(username);
         assertThat(response.getPassword()).isEqualTo(trainer.getPassword());
     }
